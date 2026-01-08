@@ -3,17 +3,23 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import { FavoritesProvider } from './auth/FavoritesContext'
+import { ToastProvider } from './components/ToastProvider'
+import { ApiStatusProvider } from './components/ApiStatusProvider'
 import './index.css'
 import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <FavoritesProvider>
-          <App />
-        </FavoritesProvider>
-      </AuthProvider>
+      <ApiStatusProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <FavoritesProvider>
+              <App />
+            </FavoritesProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </ApiStatusProvider>
     </BrowserRouter>
   </StrictMode>,
 )

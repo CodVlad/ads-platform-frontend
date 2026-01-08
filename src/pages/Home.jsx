@@ -39,9 +39,6 @@ const Home = () => {
       
       const response = await getAds(params);
       
-      // Debug: log raw response
-      console.log("ADS_RAW_RESPONSE:", response.data);
-      
       // Normalize response - try multiple paths to extract array
       let adsArray = [];
       const data = response.data;
@@ -141,9 +138,6 @@ const Home = () => {
     if (values.currency && values.currency.trim() !== '') {
       params.currency = values.currency;
     }
-
-    // Debug log
-    console.log("ADS_FILTER_PARAMS:", params);
 
     // Reset page to 1 when applying filters, then fetch
     fetchAds(params, 1, pagination.limit);

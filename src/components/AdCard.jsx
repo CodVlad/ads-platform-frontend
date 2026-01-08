@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useFavorites } from '../auth/FavoritesContext';
 import { addFavorite, removeFavorite } from '../api/endpoints';
+import { useToast } from '../hooks/useToast';
+import { parseError } from '../utils/errorParser';
 
 const AdCard = ({ ad, showFavoriteButton = true }) => {
   const { user } = useAuth();
@@ -10,6 +12,7 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const { success, error: showError } = useToast();
   const coverImage = ad.images && ad.images[0] ? ad.images[0] : null;
   
   const canFavorite = ad?.status === "active";
@@ -50,13 +53,12 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
       try {
         await removeFavorite(adId);
         removeFromFavorites(adId);
+        success('Removed from favorites');
       } catch (err) {
         const status = err?.response?.status;
-        const backend = err?.response?.data;
-        const msg = backend?.message || err.message || 'Failed to remove favorite';
-        
-        console.error('FAVORITE_ERROR', { adId: ad?._id, status, backend, msg });
+        const msg = parseError(err);
         setError(msg);
+        showError(msg);
         
         if (status === 401) {
           navigate('/login');
@@ -71,20 +73,20 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
       try {
         await addFavorite(adId);
         addToFavorites(ad);
+        success('Added to favorites');
       } catch (err) {
         const status = err?.response?.status;
         const backend = err?.response?.data;
-        const msg = backend?.message || err.message || '';
+        const msg = parseError(err);
         
         // Handle known 400 case gracefully
         if (status === 400 && msg.toLowerCase().includes('already in favorites')) {
           // Treat as success
           addToFavorites(ad);
-          // No error shown, no console.error
+          success('Added to favorites');
         } else {
-          // Log error for debugging
-          console.error('FAVORITE_ERROR', { adId: ad?._id, status, backend, msg });
           setError(msg || 'Failed to save favorite');
+          showError(msg || 'Failed to save favorite');
           
           if (status === 401) {
             navigate('/login');

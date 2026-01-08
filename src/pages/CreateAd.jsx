@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createAd } from '../api/endpoints';
+import { useToast } from '../hooks/useToast';
+import { parseError } from '../utils/errorParser';
 
 const CreateAd = () => {
   const navigate = useNavigate();
@@ -11,8 +13,8 @@ const CreateAd = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const { success, error: showError } = useToast();
 
   const validate = () => {
     const errors = {};
@@ -56,7 +58,6 @@ const CreateAd = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setSuccess(false);
     setValidationErrors({});
 
     if (!validate()) {
@@ -78,35 +79,14 @@ const CreateAd = () => {
         formData.append('images', file);
       });
 
-      // Debug log before sending
-      console.log("CREATE_AD_FORM:", {
-        title,
-        descriptionLen: description.length,
-        price,
-        currency,
-        filesCount: images.length,
-      });
-      console.log("Submitting createAd to:", import.meta.env.VITE_API_URL + "/api/ads");
-      
       await createAd(formData);
       
-      // Navigate to my-ads after successful creation
+      success('Ad created');
       navigate('/my-ads');
     } catch (err) {
-      const status = err?.response?.status;
-      const backend = err?.response?.data;
-      const msg = backend?.message || err.message || 'Failed to create ad';
-      
-      // Extract backend validation details
-      let detailsMsg = msg;
-      if (backend?.details?.errors?.length) {
-        detailsMsg = backend.details.errors
-          .map((e) => `${e.field}: ${e.message}`)
-          .join('\n');
-      }
-      
-      console.error("CREATE_AD_BACKEND:", backend);
-      setError(detailsMsg);
+      const errorMessage = parseError(err);
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -276,18 +256,6 @@ const CreateAd = () => {
             </div>
           )}
         </div>
-
-        {success && (
-          <div style={{
-            color: 'green',
-            marginBottom: '16px',
-            padding: '8px',
-            backgroundColor: '#e6ffe6',
-            borderRadius: '4px',
-          }}>
-            Ad created successfully! Redirecting to My Ads...
-          </div>
-        )}
 
         {error && (
           <div style={{

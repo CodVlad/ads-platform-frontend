@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getMyAds, updateAdStatus, updateAd, deleteAd } from '../api/endpoints';
+import { useToast } from '../hooks/useToast';
+import { parseError } from '../utils/errorParser';
 
 const MyAds = () => {
+  const { success, error: showError } = useToast();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [ads, setAds] = useState([]);
@@ -108,9 +111,16 @@ const MyAds = () => {
       
       // Clear error on success
       setAdError(adId, null);
+      const statusMessages = {
+        active: 'Ad published',
+        sold: 'Ad marked as sold',
+        draft: 'Ad status updated',
+      };
+      success(statusMessages[newStatus] || 'Status updated');
     } catch (err) {
-      const errorMsg = err.response?.data?.message || err.message || 'Failed to update ad status';
+      const errorMsg = parseError(err);
       setAdError(adId, errorMsg);
+      showError(errorMsg);
     } finally {
       // Set loading false
       setAdLoading(adId, false);
@@ -253,26 +263,11 @@ const MyAds = () => {
       // Close edit mode
       handleCancelEdit(adId);
       setAdError(adId, null);
+      success('Ad updated');
     } catch (err) {
-      const status = err?.response?.status;
-      const backend = err?.response?.data;
-      console.error("MYADS_UPDATE_ERROR", { id: adId, status, backend });
-      
-      // Handle backend field errors
-      let errorMsg = 'Request failed';
-      if (backend?.details?.errors && Array.isArray(backend.details.errors)) {
-        // Build readable string from field errors array
-        const fieldErrors = backend.details.errors
-          .map((err) => `${err.field}: ${err.message}`)
-          .join('\n');
-        errorMsg = fieldErrors;
-      } else if (backend?.message) {
-        errorMsg = backend.message;
-      } else if (err.message) {
-        errorMsg = err.message;
-      }
-      
+      const errorMsg = parseError(err);
       setAdError(adId, errorMsg);
+      showError(errorMsg);
     } finally {
       setAdLoading(adId, false);
     }
@@ -332,12 +327,11 @@ const MyAds = () => {
         return updated;
       });
       setAdError(adId, null);
+      success('Ad deleted');
     } catch (err) {
-      const status = err?.response?.status;
-      const backend = err?.response?.data;
-      console.error("MYADS_DELETE_ERROR", { id: adId, status, backend });
-      const errorMsg = backend?.message || err.message || 'Request failed';
+      const errorMsg = parseError(err);
       setAdError(adId, errorMsg);
+      showError(errorMsg);
     } finally {
       // Set loading false
       setAdLoading(adId, false);

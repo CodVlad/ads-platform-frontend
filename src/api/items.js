@@ -1,6 +1,6 @@
-import http from './http';
+import api from './client';
 
 export const getItems = () => {
-  return http.get('/api/items');
+  return api.get('/api/items');
 };
 

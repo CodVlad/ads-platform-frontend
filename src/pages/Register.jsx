@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { register } from '../api/endpoints';
+import { useToast } from '../hooks/useToast';
+import { parseError } from '../utils/errorParser';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -11,6 +13,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { loginSuccess } = useAuth();
+  const { success, error: showError } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,13 +43,12 @@ const Register = () => {
       }
 
       loginSuccess({ token, user });
+      success('Account created');
       navigate('/');
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 
-                          err.response?.data?.error || 
-                          err.message || 
-                          'Registration failed. Please try again.';
+      const errorMessage = parseError(err);
       setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
