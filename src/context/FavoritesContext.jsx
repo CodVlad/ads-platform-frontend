@@ -1,15 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, createContext } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { getFavorites, addFavorite as addFavoriteAPI, removeFavorite as removeFavoriteAPI } from '../api/endpoints';
-import { parseError } from '../utils/errorParser';
-import { FavoritesContext } from './favoritesContext';
+
+export const FavoritesContext = createContext(null);
 
 export const FavoritesProvider = ({ children }) => {
   const [favoriteIds, setFavoriteIds] = useState(new Set());
-  const [favorites, setFavorites] = useState([]); // Keep full ad objects for Favorites page
+  const [favorites, setFavorites] = useState([]); // Full ad objects for Favorites page
   const [loading, setLoading] = useState(false);
   const { token, user } = useAuth();
 
+  // Load favorites from backend (source of truth)
   const loadFavorites = useCallback(async () => {
     if (!token) {
       setFavoriteIds(new Set());
@@ -38,7 +39,6 @@ export const FavoritesProvider = ({ children }) => {
         favoritesArray = data;
       }
 
-      // Ensure favorites is always an array
       const validFavorites = Array.isArray(favoritesArray) ? favoritesArray : [];
       
       // Build Set from favorite IDs
@@ -61,84 +61,72 @@ export const FavoritesProvider = ({ children }) => {
     }
   }, [token]);
 
-  // Add favorite: calls API then reloads from backend
+  // Add favorite: call API then reload from backend
   const addFavorite = useCallback(async (adId) => {
     try {
-      const response = await addFavoriteAPI(adId);
-      
-      // Backend may return {favorited: true} or message "Already in favorites"
-      // Always reload to sync with backend (handles "already" case)
+      await addFavoriteAPI(adId);
+      // Always reload to sync with backend (source of truth)
       await loadFavorites();
-      
-      // Check response for message
-      const backend = response?.data;
-      const message = backend?.message || 'Added to favorites';
-      
-      return { success: true, message };
+      return { success: true, message: 'Added to favorites' };
     } catch (err) {
-      // Check if backend returned success: true even with error status
-      if (err.response?.data?.success === true) {
-        console.warn("STATUS_MISMATCH", { 
-          status: err.response?.status, 
-          data: err.response?.data 
-        });
-        
-        // Treat as success and reload to sync
-        await loadFavorites();
-        const backend = err.response.data;
-        const message = backend?.message || 'Added to favorites';
-        return { success: true, message };
-      }
-      
+      // Handle idempotent responses - if already favorited, treat as success
       const backend = err?.response?.data;
-      const message = backend?.message || parseError(err);
+      const message = backend?.message || '';
+      const errorType = backend?.details?.type || '';
       
-      // If error message includes "Already in favorites", treat as success
-      // Still reload to ensure state is in sync
-      if (message.toLowerCase().includes('already')) {
+      // Check for "ALREADY_FAVORITE" or similar messages
+      if (
+        err.response?.status === 200 ||
+        err.response?.data?.success === true ||
+        message.toLowerCase().includes('already') ||
+        errorType === 'ALREADY_FAVORITE'
+      ) {
+        // Treat as success and reload to sync state
         await loadFavorites();
-        return { success: true, message };
+        return { success: true, message: message || 'Already in favorites' };
       }
       
+      // For other errors, reload anyway to ensure state is correct
+      await loadFavorites();
       throw err;
     }
   }, [loadFavorites]);
 
-  // Remove favorite: calls API then reloads from backend
+  // Remove favorite: call API then reload from backend
   const removeFavorite = useCallback(async (adId) => {
     try {
-      const response = await removeFavoriteAPI(adId);
-      
-      // Backend may return {favorited: false} or success message
-      // Always reload to sync with backend
+      await removeFavoriteAPI(adId);
+      // Always reload to sync with backend (source of truth)
       await loadFavorites();
-      
-      // Check response for message
-      const backend = response?.data;
-      const message = backend?.message || 'Removed from favorites';
-      
-      return { success: true, message };
+      return { success: true, message: 'Removed from favorites' };
     } catch (err) {
-      // Check if backend returned success: true even with error status
-      if (err.response?.data?.success === true) {
-        console.warn("STATUS_MISMATCH", { 
-          status: err.response?.status, 
-          data: err.response?.data 
-        });
-        
-        // Treat as success and reload to sync
+      // Handle idempotent responses
+      const backend = err?.response?.data;
+      const message = backend?.message || '';
+      
+      if (
+        err.response?.status === 200 ||
+        err.response?.data?.success === true ||
+        message.toLowerCase().includes('not in favorites')
+      ) {
+        // Treat as success and reload to sync state
         await loadFavorites();
-        const backend = err.response.data;
-        const message = backend?.message || 'Removed from favorites';
-        return { success: true, message };
+        return { success: true, message: message || 'Removed from favorites' };
       }
       
-      // On error, still reload to sync state
+      // For other errors, reload anyway to ensure state is correct
       await loadFavorites();
       throw err;
     }
   }, [loadFavorites]);
 
+  // Check if ad is favorite
+  const isFavorite = useCallback((adId) => {
+    if (!adId) return false;
+    return favoriteIds.has(String(adId));
+  }, [favoriteIds]);
+
+  // Clear favorites (on logout)
   const clearFavorites = useCallback(() => {
     setFavoriteIds(new Set());
     setFavorites([]);
@@ -160,9 +148,9 @@ export const FavoritesProvider = ({ children }) => {
     loadFavorites,
     addFavorite,
     removeFavorite,
+    isFavorite,
     clearFavorites,
   };
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
 };
-

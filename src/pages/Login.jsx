@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { useFavorites } from '../hooks/useFavorites';
 import { login } from '../api/endpoints';
 import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
@@ -13,6 +14,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { loginSuccess } = useAuth();
+  const { loadFavorites } = useFavorites();
   const { success, error: showError } = useToast();
 
   const handleSubmit = async (e) => {
@@ -43,6 +45,8 @@ const Login = () => {
       }
 
       loginSuccess({ token, user });
+      // Load favorites immediately after login
+      await loadFavorites();
       success('Logged in');
       // Don't redirect if on reset/forgot-password routes
       const bypass = location.pathname.startsWith('/reset-password/') || 

@@ -6,8 +6,8 @@ import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
 
 const AdCard = ({ ad, showFavoriteButton = true }) => {
-  const { user } = useAuth();
-  const { favoriteIds, addFavorite, removeFavorite } = useFavorites();
+  const { user, token } = useAuth();
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -16,8 +16,7 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
   
   const canFavorite = ad?.status === "active";
   const adId = ad._id || ad.id;
-  const adIdStr = adId ? String(adId) : null;
-  const isFavorited = showFavoriteButton && adIdStr ? favoriteIds.has(adIdStr) : false;
+  const saved = showFavoriteButton && adId ? isFavorite(adId) : false;
 
   const handleFavoriteClick = async (e) => {
     e.preventDefault();
@@ -34,7 +33,7 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
       return;
     }
 
-    if (!user || !adIdStr) {
+    if (!user || !adId) {
       if (!user) {
         navigate('/login');
       }
@@ -42,7 +41,6 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
     }
 
     // Check token exists before making API call
-    const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login');
       return;
@@ -52,7 +50,7 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
     setError(null);
 
     try {
-      if (isFavorited) {
+      if (saved) {
         // User clicked "Saved" button - remove favorite
         const result = await removeFavorite(adId);
         success(result.message || 'Removed from favorites');
@@ -162,7 +160,7 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
               disabled={busy || !canFavorite}
               style={{
                 padding: '8px 16px',
-                backgroundColor: isFavorited ? '#dc3545' : '#6c757d',
+                backgroundColor: saved ? '#dc3545' : '#6c757d',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
@@ -171,7 +169,7 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
                 opacity: (busy || !canFavorite) ? 0.6 : 1,
               }}
             >
-              {busy ? '...' : (isFavorited ? '❤️ Saved' : '❤️ Save')}
+              {busy ? '...' : (saved ? '❤️ Saved' : '❤️ Save')}
             </button>
           )}
         </div>

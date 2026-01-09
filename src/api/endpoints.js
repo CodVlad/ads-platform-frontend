@@ -2,59 +2,59 @@ import api from './client';
 
 // AUTH endpoints
 export const register = (data) => {
-  return api.post('/api/auth/register', data);
+  return api.post('/auth/register', data);
 };
 
 export const login = (data) => {
-  return api.post('/api/auth/login', data);
+  return api.post('/auth/login', data);
 };
 
 export const forgotPassword = (data) => {
-  return api.post('/api/auth/forgot-password', data);
+  return api.post('/auth/forgot-password', data);
 };
 
 export const resetPassword = (token, data) => {
-  return api.post(`/api/auth/reset-password/${token}`, data);
+  return api.post(`/auth/reset-password/${token}`, data);
 };
 
 // ADS endpoints (public)
-export const getAds = (params = {}) => api.get("/api/ads", { params });
+export const getAds = (params = {}) => api.get("/ads", { params });
 
-export const getAdById = (id) => api.get(`/api/ads/${id}`);
+export const getAdById = (id) => api.get(`/ads/${id}`);
 
 export const createAd = (formData) => {
-  return api.post('/api/ads', formData, {
+  return api.post('/ads', formData, {
     headers: {
       'Content-Type': undefined, // Let axios set multipart/form-data with boundary
     },
   });
 };
 
-export const getMyAds = () => api.get("/api/ads/my");
+export const getMyAds = () => api.get("/ads/my");
 
 export const getMyAdsAlt = () => {
-  return api.get('/api/ads/me');
+  return api.get('/ads/me');
 };
 
 export const updateAdStatus = (id, status) =>
-  api.patch(`/api/ads/${id}/status`, { status });
+  api.patch(`/ads/${id}/status`, { status });
 
 export const updateAd = (id, payload) =>
-  api.patch(`/api/ads/${id}`, payload);
+  api.patch(`/ads/${id}`, payload);
 
 export const deleteAd = (id) =>
-  api.delete(`/api/ads/${id}`);
+  api.delete(`/ads/${id}`);
 
 // FAVORITES endpoints (protected)
 export const getFavorites = () => {
-  return api.get('/api/favorites');
+  return api.get('/favorites');
 };
 
 export const addFavorite = (adId) => {
-  return api.post(`/api/favorites/${adId}`);
+  return api.post(`/favorites/${adId}`);
 };
 
 export const removeFavorite = (adId) => {
-  return api.delete(`/api/favorites/${adId}`);
+  return api.delete(`/favorites/${adId}`);
 };
 

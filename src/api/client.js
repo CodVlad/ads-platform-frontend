@@ -2,7 +2,9 @@ import axios from 'axios';
 import { setApiLoading } from '../utils/apiStatus';
 
 // Create axios instance with base URL from environment
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+// Ensure baseURL includes /api if not already present
+const envURL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const baseURL = envURL.endsWith('/api') ? envURL : `${envURL.replace(/\/+$/, '')}/api`;
 
 const api = axios.create({
   baseURL: baseURL,

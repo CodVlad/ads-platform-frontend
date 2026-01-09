@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { useFavorites } from '../hooks/useFavorites';
 import { register } from '../api/endpoints';
 import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
@@ -14,6 +15,7 @@ const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { loginSuccess } = useAuth();
+  const { loadFavorites } = useFavorites();
   const { success, error: showError } = useToast();
 
   const handleSubmit = async (e) => {
@@ -44,6 +46,8 @@ const Register = () => {
       }
 
       loginSuccess({ token, user });
+      // Load favorites immediately after registration/login
+      await loadFavorites();
       success('Account created');
       // Don't redirect if on reset/forgot-password routes
       const bypass = location.pathname.startsWith('/reset-password/') || 
