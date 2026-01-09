@@ -6,6 +6,7 @@ const FavoritesContext = createContext(null);
 
 export const FavoritesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(false);
   const { token, user } = useAuth();
 
   // Derived favoriteIds array
@@ -14,10 +15,12 @@ export const FavoritesProvider = ({ children }) => {
   const loadFavorites = useCallback(async () => {
     if (!token) {
       setFavorites([]);
+      setLoading(false);
       return;
     }
 
     try {
+      setLoading(true);
       const response = await getFavorites();
       
       // Normalize response - try multiple paths to extract array
@@ -41,6 +44,8 @@ export const FavoritesProvider = ({ children }) => {
     } catch (error) {
       console.error('Failed to load favorites:', error);
       setFavorites([]);
+    } finally {
+      setLoading(false);
     }
   }, [token]);
 
@@ -76,6 +81,7 @@ export const FavoritesProvider = ({ children }) => {
   const value = {
     favorites,
     favoriteIds,
+    loading,
     loadFavorites,
     addToFavorites,
     removeFromFavorites,

@@ -1,8 +1,8 @@
-import { useFavorites } from '../auth/FavoritesContext';
+import { useFavorites } from '../hooks/useFavorites';
 import AdCard from '../components/AdCard';
 
 const Favorites = () => {
-  const { favorites, loadFavorites } = useFavorites();
+  const { favorites, loadFavorites, loading } = useFavorites();
 
   return (
     <div>
@@ -10,20 +10,24 @@ const Favorites = () => {
         <h1>My Favorites</h1>
         <button
           onClick={loadFavorites}
+          disabled={loading}
           style={{
             padding: '8px 16px',
-            backgroundColor: '#007bff',
+            backgroundColor: loading ? '#ccc' : '#007bff',
             color: 'white',
             border: 'none',
             borderRadius: '4px',
-            cursor: 'pointer',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.6 : 1,
           }}
         >
-          Refresh
+          {loading ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
 
-      {favorites.length === 0 ? (
+      {loading && favorites.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '20px' }}>Loading favorites...</div>
+      ) : favorites.length === 0 ? (
         <div>No favorites yet</div>
       ) : (
         <div style={{

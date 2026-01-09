@@ -9,6 +9,10 @@ export const login = (data) => {
   return api.post('/api/auth/login', data);
 };
 
+export const resetPassword = (token, data) => {
+  return api.post(`/api/auth/reset-password/${token}`, data);
+};
+
 // ADS endpoints (public)
 export const getAds = (params = {}) => api.get("/api/ads", { params });
 

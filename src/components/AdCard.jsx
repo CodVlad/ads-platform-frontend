@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { useFavorites } from '../auth/FavoritesContext';
-import { addFavorite, removeFavorite } from '../api/endpoints';
+import { useFavorites } from '../hooks/useFavorites';
 import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
 
 const AdCard = ({ ad, showFavoriteButton = true }) => {
   const { user } = useAuth();
-  const { favoriteIds, addToFavorites, removeFromFavorites } = useFavorites();
+  const { favoriteIds, addFavorite, removeFavorite } = useFavorites();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -16,8 +15,9 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
   const coverImage = ad.images && ad.images[0] ? ad.images[0] : null;
   
   const canFavorite = ad?.status === "active";
-  const isFavorited = showFavoriteButton ? favoriteIds.includes(ad._id) : false;
   const adId = ad._id || ad.id;
+  const adIdStr = adId ? String(adId) : null;
+  const isFavorited = showFavoriteButton && adIdStr ? favoriteIds.has(adIdStr) : false;
 
   const handleFavoriteClick = async (e) => {
     e.preventDefault();
@@ -28,13 +28,16 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
       return;
     }
 
-    // Guard: only active ads can be favorited
-    if (!canFavorite) {
+    // Guard: check ad status before calling API - prevent 400 errors
+    if (ad?.status !== "active") {
+      showError('Only active ads can be added to favorites');
       return;
     }
 
-    if (!user) {
-      navigate('/login');
+    if (!user || !adIdStr) {
+      if (!user) {
+        navigate('/login');
+      }
       return;
     }
 
@@ -45,56 +48,42 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
       return;
     }
 
-    // Prevent duplicate calls based on current state
-    if (isFavorited) {
-      // User clicked "Saved" button - unsave
-      setBusy(true);
-      setError(null);
-      try {
-        await removeFavorite(adId);
-        removeFromFavorites(adId);
-        success('Removed from favorites');
-      } catch (err) {
-        const status = err?.response?.status;
-        const msg = parseError(err);
+    setBusy(true);
+    setError(null);
+
+    try {
+      if (isFavorited) {
+        // User clicked "Saved" button - remove favorite
+        const result = await removeFavorite(adId);
+        success(result.message || 'Removed from favorites');
+      } else {
+        // User clicked "Save" button - add favorite
+        const result = await addFavorite(adId);
+        success(result.message || 'Added to favorites');
+      }
+    } catch (err) {
+      const status = err?.response?.status;
+      const backend = err?.response?.data;
+      const msg = parseError(err);
+      
+      // Check for NOT_ACTIVE error type
+      const isNotActive = 
+        status === 400 && backend?.details?.type === "NOT_ACTIVE";
+      
+      if (isNotActive) {
+        // Keep isFavorited false
+        showError(backend?.message || msg || 'Only active ads can be added to favorites');
+      } else {
+        // Show backend error message
         setError(msg);
         showError(msg);
         
         if (status === 401) {
           navigate('/login');
         }
-      } finally {
-        setBusy(false);
       }
-    } else {
-      // User clicked "Save" button - save
-      setBusy(true);
-      setError(null);
-      try {
-        await addFavorite(adId);
-        addToFavorites(ad);
-        success('Added to favorites');
-      } catch (err) {
-        const status = err?.response?.status;
-        const backend = err?.response?.data;
-        const msg = parseError(err);
-        
-        // Handle known 400 case gracefully
-        if (status === 400 && msg.toLowerCase().includes('already in favorites')) {
-          // Treat as success
-          addToFavorites(ad);
-          success('Added to favorites');
-        } else {
-          setError(msg || 'Failed to save favorite');
-          showError(msg || 'Failed to save favorite');
-          
-          if (status === 401) {
-            navigate('/login');
-          }
-        }
-      } finally {
-        setBusy(false);
-      }
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -192,7 +181,7 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
             fontSize: '12px',
             marginTop: '4px',
           }}>
-            Only active ads can be saved
+            Activate ad to save
           </div>
         )}
         {showFavoriteButton && error && (

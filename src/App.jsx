@@ -3,6 +3,7 @@ import ProtectedRoute from './auth/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ResetPassword from './pages/ResetPassword';
 import AdDetails from './pages/AdDetails';
 import Favorites from './pages/Favorites';
 import CreateAd from './pages/CreateAd';
@@ -14,6 +15,7 @@ const App = () => {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route path="/ads/:id" element={<AdDetails />} />
       <Route
         path="/favorites"

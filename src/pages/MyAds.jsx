@@ -34,24 +34,6 @@ const MyAds = () => {
     });
   }, []);
 
-  // Helper: Update ad in state (merge patch or replace full object)
-  const updateAdInState = useCallback((adId, patchOrFullAd) => {
-    setAds((prevAds) => {
-      return prevAds.map((ad) => {
-        const currentId = ad._id || ad.id;
-        if (currentId === adId) {
-          // If patchOrFullAd has _id or id matching, treat as full object replacement
-          const patchId = patchOrFullAd._id || patchOrFullAd.id;
-          if (patchId && patchId === adId) {
-            return patchOrFullAd;
-          }
-          // Otherwise, merge patch into existing ad
-          return { ...ad, ...patchOrFullAd };
-        }
-        return ad;
-      });
-    });
-  }, []);
 
   // Fetch ads from API
   const fetchMyAds = useCallback(async () => {
@@ -83,31 +65,10 @@ const MyAds = () => {
     setAdLoading(adId, true);
 
     try {
-      const response = await updateAdStatus(adId, newStatus);
+      await updateAdStatus(adId, newStatus);
       
-      // On success: update ad in state
-      let updatedAd = null;
-      
-      // Check if API returns updated ad in res.data.ad or res.data.data.ad
-      if (response.data?.ad) {
-        updatedAd = response.data.ad;
-      } else if (response.data?.data?.ad) {
-        updatedAd = response.data.data.ad;
-      } else if (response.data?.data && (response.data.data._id || response.data.data.id)) {
-        // If response.data.data is the ad object itself
-        updatedAd = response.data.data;
-      } else if (response.data && (response.data._id || response.data.id)) {
-        // If response.data is the ad object itself
-        updatedAd = response.data;
-      }
-      
-      if (updatedAd) {
-        // Use full ad object from API
-        updateAdInState(adId, updatedAd);
-      } else {
-        // Update locally with just status
-        updateAdInState(adId, { status: newStatus });
-      }
+      // Refetch my ads from backend as source of truth
+      await fetchMyAds();
       
       // Clear error on success
       setAdError(adId, null);
@@ -236,29 +197,10 @@ const MyAds = () => {
         currency: formData.currency,
       };
 
-      const response = await updateAd(adId, payload);
+      await updateAd(adId, payload);
 
-      // On success: update ad in state
-      let updatedAd = null;
-
-      // Check if API returns updated ad
-      if (response.data?.ad) {
-        updatedAd = response.data.ad;
-      } else if (response.data?.data?.ad) {
-        updatedAd = response.data.data.ad;
-      } else if (response.data?.data && (response.data.data._id || response.data.data.id)) {
-        updatedAd = response.data.data;
-      } else if (response.data && (response.data._id || response.data.id)) {
-        updatedAd = response.data;
-      }
-
-      if (updatedAd) {
-        // Use full ad object from API
-        updateAdInState(adId, updatedAd);
-      } else {
-        // Merge payload into local state
-        updateAdInState(adId, payload);
-      }
+      // Refetch my ads from backend as source of truth
+      await fetchMyAds();
 
       // Close edit mode
       handleCancelEdit(adId);
@@ -307,8 +249,8 @@ const MyAds = () => {
     try {
       await deleteAd(adId);
       
-      // On success: remove ad from local state immediately
-      setAds((prevAds) => prevAds.filter((ad) => (ad._id || ad.id) !== adId));
+      // Refetch my ads from backend as source of truth
+      await fetchMyAds();
       
       // Clean up any state related to this ad
       setEditingById((prev) => {
