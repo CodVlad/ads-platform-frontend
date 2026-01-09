@@ -47,7 +47,7 @@ export const deleteAd = (id) =>
 
 // FAVORITES endpoints (protected)
 export const getFavorites = () => {
-  return api.get('/favorites');
+  return api.get('/favorites/my');
 };
 
 export const addFavorite = (adId) => {

@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback, createContext } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { getFavorites, addFavorite as addFavoriteAPI, removeFavorite as removeFavoriteAPI } from '../api/endpoints';
-
-export const FavoritesContext = createContext(null);
+import { FavoritesContext } from './FavoritesContext';
 
 export const FavoritesProvider = ({ children }) => {
   const [favoriteIds, setFavoriteIds] = useState(new Set());
@@ -22,40 +21,71 @@ export const FavoritesProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await getFavorites();
-      
-      // Normalize response - try multiple paths to extract array
-      let favoritesArray = [];
       const data = response.data;
       
-      if (data?.ads && Array.isArray(data.ads)) {
+      let idsSet = new Set();
+      let favoritesArray = [];
+      
+      // Handle format A: { success:true, favorites:[{_id:...}, ...] }
+      if (data?.success && Array.isArray(data.favorites)) {
+        const favs = data.favorites;
+        // Check if array contains objects or just IDs
+        if (favs.length > 0 && typeof favs[0] === 'object') {
+          // Format A: array of ad objects
+          favoritesArray = favs;
+          favs.forEach((ad) => {
+            const id = ad._id || ad.id;
+            if (id) idsSet.add(String(id));
+          });
+        } else {
+          // Format B: array of ID strings
+          favs.forEach((id) => {
+            if (id) idsSet.add(String(id));
+          });
+        }
+      }
+      // Handle format: { ads: [...] } or legacy formats
+      else if (data?.ads && Array.isArray(data.ads)) {
         favoritesArray = data.ads;
+        data.ads.forEach((ad) => {
+          const id = ad._id || ad.id;
+          if (id) idsSet.add(String(id));
+        });
       } else if (data?.data?.ads && Array.isArray(data.data.ads)) {
         favoritesArray = data.data.ads;
+        data.data.ads.forEach((ad) => {
+          const id = ad._id || ad.id;
+          if (id) idsSet.add(String(id));
+        });
       } else if (data?.data && Array.isArray(data.data)) {
         favoritesArray = data.data;
-      } else if (data?.items && Array.isArray(data.items)) {
-        favoritesArray = data.items;
+        data.data.forEach((ad) => {
+          const id = ad._id || ad.id;
+          if (id) idsSet.add(String(id));
+        });
       } else if (Array.isArray(data)) {
         favoritesArray = data;
+        data.forEach((ad) => {
+          const id = ad._id || ad.id;
+          if (id) idsSet.add(String(id));
+        });
       }
-
-      const validFavorites = Array.isArray(favoritesArray) ? favoritesArray : [];
-      
-      // Build Set from favorite IDs
-      const idsSet = new Set();
-      validFavorites.forEach((ad) => {
-        const id = ad._id || ad.id;
-        if (id) {
-          idsSet.add(String(id));
-        }
-      });
       
       setFavoriteIds(idsSet);
-      setFavorites(validFavorites);
+      setFavorites(favoritesArray);
     } catch (error) {
-      console.error('Failed to load favorites:', error);
-      setFavoriteIds(new Set());
-      setFavorites([]);
+      // Handle 401: redirect to login and clear state
+      if (error?.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setFavoriteIds(new Set());
+        setFavorites([]);
+        // Navigation will be handled by ProtectedRoute
+      } else {
+        console.error('Failed to load favorites:', error);
+        setFavoriteIds(new Set());
+        setFavorites([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -63,12 +93,25 @@ export const FavoritesProvider = ({ children }) => {
 
   // Add favorite: call API then reload from backend
   const addFavorite = useCallback(async (adId) => {
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
     try {
       await addFavoriteAPI(adId);
       // Always reload to sync with backend (source of truth)
       await loadFavorites();
       return { success: true, message: 'Added to favorites' };
     } catch (err) {
+      // Handle 401: redirect to login
+      if (err?.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setFavoriteIds(new Set());
+        setFavorites([]);
+        throw new Error('Authentication required');
+      }
+
       // Handle idempotent responses - if already favorited, treat as success
       const backend = err?.response?.data;
       const message = backend?.message || '';
@@ -90,16 +133,29 @@ export const FavoritesProvider = ({ children }) => {
       await loadFavorites();
       throw err;
     }
-  }, [loadFavorites]);
+  }, [loadFavorites, token]);
 
   // Remove favorite: call API then reload from backend
   const removeFavorite = useCallback(async (adId) => {
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
     try {
       await removeFavoriteAPI(adId);
       // Always reload to sync with backend (source of truth)
       await loadFavorites();
       return { success: true, message: 'Removed from favorites' };
     } catch (err) {
+      // Handle 401: redirect to login
+      if (err?.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setFavoriteIds(new Set());
+        setFavorites([]);
+        throw new Error('Authentication required');
+      }
+
       // Handle idempotent responses
       const backend = err?.response?.data;
       const message = backend?.message || '';
@@ -118,7 +174,7 @@ export const FavoritesProvider = ({ children }) => {
       await loadFavorites();
       throw err;
     }
-  }, [loadFavorites]);
+  }, [loadFavorites, token]);
 
   // Check if ad is favorite
   const isFavorite = useCallback((adId) => {
@@ -140,6 +196,7 @@ export const FavoritesProvider = ({ children }) => {
       clearFavorites();
     }
   }, [token, user, loadFavorites, clearFavorites]);
+
 
   const value = {
     favoriteIds, // Set<string>
