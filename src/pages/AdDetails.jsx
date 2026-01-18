@@ -1,13 +1,21 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getAdById } from '../api/endpoints';
+import { startChat } from '../api/chat';
+import { useAuth } from '../auth/useAuth.js';
+import { useToast } from '../hooks/useToast';
+import { parseError } from '../utils/errorParser';
 
 const AdDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { error: showError } = useToast();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [ad, setAd] = useState(null);
   const [mainImageIndex, setMainImageIndex] = useState(0);
+  const [contacting, setContacting] = useState(false);
 
   useEffect(() => {
     const fetchAd = async () => {
@@ -52,6 +60,35 @@ const AdDetails = () => {
       });
     } catch (e) {
       return dateString;
+    }
+  };
+
+  const handleContactSeller = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    const sellerUserId = ad?.user?._id || ad?.owner?._id;
+    if (!sellerUserId || !id) {
+      showError('Unable to contact seller. Missing information.');
+      return;
+    }
+
+    setContacting(true);
+    try {
+      const response = await startChat(id, sellerUserId);
+      const conversationId = response.data?.chat?._id || response.data?.data?._id || response.data?._id;
+      if (conversationId) {
+        navigate(`/chats/${conversationId}`);
+      } else {
+        showError('Failed to start conversation');
+      }
+    } catch (err) {
+      const errorMessage = parseError(err);
+      showError(errorMessage);
+    } finally {
+      setContacting(false);
     }
   };
 
@@ -180,10 +217,27 @@ const AdDetails = () => {
             </div>
           )}
           {(ad.owner?.email || ad.user?.email) && (
-            <div>
+            <div style={{ marginBottom: '12px' }}>
               <strong>Email:</strong> {ad.owner?.email || ad.user?.email}
             </div>
           )}
+          <button
+            onClick={handleContactSeller}
+            disabled={contacting}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#007bff',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: contacting ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              opacity: contacting ? 0.6 : 1,
+            }}
+          >
+            {contacting ? 'Starting conversation...' : 'Contact seller'}
+          </button>
         </div>
       )}
 
