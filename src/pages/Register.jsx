@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../auth/AuthContext.js';
+import { useAuth } from '../auth/useAuth.js';
 import { useFavorites } from '../hooks/useFavorites';
 import { register } from '../api/endpoints';
 import { useToast } from '../hooks/useToast';

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AuthContext } from './AuthContext.js';
+import { AuthContext } from './authContextBase.js';
 
 // Lazy initialization function to load from localStorage
 const getInitialToken = () => {

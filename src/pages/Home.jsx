@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../auth/AuthContext.js';
+import { useAuth } from '../auth/useAuth.js';
 import { getAds } from '../api/endpoints';
 import AdCard from '../components/AdCard';
 import FiltersBar from '../components/FiltersBar';
