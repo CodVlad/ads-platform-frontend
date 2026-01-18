@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { resetPassword } from '../api/endpoints';
 import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
@@ -11,7 +11,6 @@ const ResetPassword = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const navigate = useNavigate();
   const { success: showSuccess, error: showError } = useToast();
 
   // Extract token from params or hash
@@ -30,11 +29,12 @@ const ResetPassword = () => {
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        navigate('/login');
+        // Use window.location.hash for reliable redirect with HashRouter on Vercel
+        window.location.hash = '#/login';
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [success, navigate]);
+  }, [success]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
