@@ -74,8 +74,14 @@ const App = () => {
         <Route path="*" element={<CatchAllRedirect />} />
       </Routes>
       {/* Build stamp */}
-      <div style={{ position: 'fixed', bottom: '8px', left: '8px', fontSize: '10px', color: '#666', zIndex: 9999 }}>
-        build: VERCEL_RESET_FIX_1
+      <div style={{
+        position: 'fixed',
+        bottom: 8,
+        left: 8,
+        fontSize: 12,
+        opacity: 0.6
+      }}>
+        build: RESET_FIX_VERCEL_1
       </div>
     </>
   );
