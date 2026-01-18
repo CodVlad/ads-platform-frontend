@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { resetPassword } from '../api/endpoints';
 import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
-import { useAuth } from '../auth/authContextBase.js';
 
 const ResetPassword = () => {
   const { token: tokenFromParams } = useParams();
@@ -13,7 +12,6 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const { success: showSuccess, error: showError } = useToast();
-  const { logout } = useAuth();
 
   // Extract token from params or hash
   const token = tokenFromParams || (() => {
@@ -31,18 +29,22 @@ const ResetPassword = () => {
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        // Clear auth state before redirecting to login
-        logout();
-        // Use window.location.replace for reliable redirect with HashRouter on Vercel
+        // Clear auth session so user isn't stuck in Home due to existing login
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        // Redirect with hard navigation
         window.location.replace(`${window.location.origin}/#/login`);
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [success, logout]);
+  }, [success]);
 
   const handleRedirectToLogin = () => {
-    logout();
-    window.location.replace(`${window.location.origin}/#/login`);
+    // Clear auth session
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    // Redirect with hard navigation
+    window.location.href = `${window.location.origin}/#/login`;
   };
 
   const handleSubmit = async (e) => {
