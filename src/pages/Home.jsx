@@ -182,165 +182,168 @@ const Home = () => {
   };
 
   return (
-    <div>
-      <h1>Ads</h1>
-      {user ? (
-        <div>
-          <p>Logged in as {user.email}</p>
-          <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-            <Link
-              to="/create"
-              style={{
-                padding: '6px 12px',
-                backgroundColor: '#007bff',
-                color: 'white',
-                textDecoration: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-              }}
-            >
-              Create Ad
-            </Link>
-            <Link
-              to="/my-ads"
-              style={{
-                padding: '6px 12px',
-                backgroundColor: '#17a2b8',
-                color: 'white',
-                textDecoration: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-              }}
-            >
-              My Ads
-            </Link>
-            <Link
-              to="/favorites"
-              style={{
-                padding: '6px 12px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                textDecoration: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-              }}
-            >
-              Favorites
-            </Link>
-            <button onClick={logout}>Logout</button>
-          </div>
-        </div>
-      ) : (
-        <div>
-          <p>
-            <Link to="/login">Login</Link> | <Link to="/register">Register</Link>
+    <div className="page-container">
+      <div className="container">
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ 
+            fontSize: '2.5rem', 
+            fontWeight: '700', 
+            color: '#1a1a1a',
+            marginBottom: '8px',
+          }}>
+            Browse Ads
+          </h1>
+          <p style={{ 
+            fontSize: '1.1rem', 
+            color: '#666',
+            margin: 0,
+          }}>
+            Discover amazing deals and find what you're looking for
           </p>
         </div>
-      )}
 
-      {loading && <div>Loading...</div>}
-      
-      {error && (
-        <div>
-          <div style={{ color: 'red', marginBottom: '8px' }}>{error}</div>
-          <button
-            onClick={() => fetchAds({}, pagination.page, pagination.limit)}
-            disabled={loading}
-            style={{
-              padding: '6px 12px',
-              backgroundColor: loading ? '#ccc' : '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              fontSize: '14px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.6 : 1,
-            }}
-          >
-            {loading ? 'Refreshing...' : 'Refresh'}
-          </button>
-        </div>
-      )}
-
-      {!loading && !error && (
-        <>
-          <FiltersBar
-            initialValues={filters}
-            onApply={handleApplyFilters}
-            onReset={handleResetFilters}
-          />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
-            <p style={{ margin: 0 }}>Results: {pagination.total || ads.length}</p>
-            <p style={{ margin: 0 }}>Page {pagination.page} / {pagination.pages}</p>
+        {loading && (
+          <div style={{
+            textAlign: 'center',
+            padding: '60px 20px',
+            color: '#666',
+            fontSize: '18px',
+          }}>
+            <div>Loading ads...</div>
+          </div>
+        )}
+        
+        {error && (
+          <div className="card" style={{
+            backgroundColor: '#fff5f5',
+            border: '1px solid #fed7d7',
+            marginBottom: '24px',
+          }}>
+            <div style={{ 
+              color: '#c53030', 
+              marginBottom: '16px',
+              fontSize: '16px',
+              fontWeight: '500',
+            }}>
+              {error}
+            </div>
             <button
               onClick={() => fetchAds({}, pagination.page, pagination.limit)}
               disabled={loading}
-              style={{
-                padding: '6px 12px',
-                backgroundColor: loading ? '#ccc' : '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.6 : 1,
-              }}
+              className="btn-secondary"
             >
-              {loading ? 'Refreshing...' : 'Refresh'}
+              {loading ? 'Refreshing...' : 'Try Again'}
             </button>
           </div>
-          {Array.isArray(ads) && ads.length === 0 ? (
-            <div>No ads found</div>
-          ) : Array.isArray(ads) ? (
-            <>
-              <div style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '16px',
-                marginTop: '20px',
-              }}>
-                {ads.map((ad) => (
-                  <AdCard key={ad._id} ad={ad} showFavoriteButton={true} />
-                ))}
+        )}
+
+        {!loading && !error && (
+          <>
+            <FiltersBar
+              initialValues={filters}
+              onApply={handleApplyFilters}
+              onReset={handleResetFilters}
+            />
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              gap: '16px', 
+              marginBottom: '24px',
+              flexWrap: 'wrap',
+              padding: '16px',
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            }}>
+              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                <div>
+                  <span style={{ color: '#666', fontSize: '14px' }}>Results: </span>
+                  <strong style={{ color: '#1a1a1a', fontSize: '16px' }}>
+                    {pagination.total || ads.length}
+                  </strong>
+                </div>
+                <div>
+                  <span style={{ color: '#666', fontSize: '14px' }}>Page: </span>
+                  <strong style={{ color: '#1a1a1a', fontSize: '16px' }}>
+                    {pagination.page} / {pagination.pages}
+                  </strong>
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: '8px', marginTop: '20px', justifyContent: 'center', alignItems: 'center' }}>
-                <button
-                  onClick={() => handlePageChange(pagination.page - 1)}
-                  disabled={!pagination.hasPrev || loading}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: !pagination.hasPrev || loading ? '#ccc' : '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    cursor: !pagination.hasPrev || loading ? 'not-allowed' : 'pointer',
-                    opacity: !pagination.hasPrev || loading ? 0.6 : 1,
-                  }}
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => handlePageChange(pagination.page + 1)}
-                  disabled={!pagination.hasNext || loading}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: !pagination.hasNext || loading ? '#ccc' : '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    cursor: !pagination.hasNext || loading ? 'not-allowed' : 'pointer',
-                    opacity: !pagination.hasNext || loading ? 0.6 : 1,
-                  }}
-                >
-                  Next
-                </button>
+              <button
+                onClick={() => fetchAds({}, pagination.page, pagination.limit)}
+                disabled={loading}
+                className="btn-secondary"
+                style={{ fontSize: '14px', padding: '8px 16px' }}
+              >
+                🔄 Refresh
+              </button>
+            </div>
+            {Array.isArray(ads) && ads.length === 0 ? (
+              <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
+                <h3 style={{ color: '#1a1a1a', marginBottom: '8px' }}>No ads found</h3>
+                <p style={{ color: '#666' }}>Try adjusting your filters to see more results</p>
               </div>
-            </>
-          ) : null}
-        </>
-      )}
+            ) : Array.isArray(ads) ? (
+              <>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: '24px',
+                  marginBottom: '32px',
+                }}>
+                  {ads.map((ad) => (
+                    <AdCard key={ad._id} ad={ad} showFavoriteButton={true} />
+                  ))}
+                </div>
+                {pagination.pages > 1 && (
+                  <div style={{ 
+                    display: 'flex', 
+                    gap: '12px', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    marginTop: '32px',
+                  }}>
+                    <button
+                      onClick={() => handlePageChange(pagination.page - 1)}
+                      disabled={!pagination.hasPrev || loading}
+                      className="btn-primary"
+                      style={{
+                        opacity: !pagination.hasPrev || loading ? 0.5 : 1,
+                        cursor: !pagination.hasPrev || loading ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      ← Previous
+                    </button>
+                    <span style={{
+                      padding: '10px 20px',
+                      backgroundColor: '#f8f9fa',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#333',
+                    }}>
+                      Page {pagination.page} of {pagination.pages}
+                    </span>
+                    <button
+                      onClick={() => handlePageChange(pagination.page + 1)}
+                      disabled={!pagination.hasNext || loading}
+                      className="btn-primary"
+                      style={{
+                        opacity: !pagination.hasNext || loading ? 0.5 : 1,
+                        cursor: !pagination.hasNext || loading ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      Next →
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : null}
+          </>
+        )}
+      </div>
     </div>
   );
 };

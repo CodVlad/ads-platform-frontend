@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './auth/ProtectedRoute';
+import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -54,6 +55,7 @@ const App = () => {
 
   return (
     <>
+      <Navbar />
       <Routes>
         {/* ✅ PUBLIC ROUTES (top-level) - ORDER MATTERS! */}
         <Route path="/reset-password/:token" element={<ResetPassword />} />

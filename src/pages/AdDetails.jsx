@@ -94,24 +94,43 @@ const AdDetails = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <div>Loading...</div>
+      <div className="page-container">
+        <div className="container" style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <div style={{ fontSize: '18px', color: '#666' }}>Loading ad details...</div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-        <div style={{ color: 'red', fontSize: '18px' }}>{error}</div>
+      <div className="page-container">
+        <div className="container" style={{ maxWidth: '800px' }}>
+          <div className="card" style={{
+            backgroundColor: '#fff5f5',
+            border: '1px solid #fed7d7',
+            textAlign: 'center',
+            padding: '40px 20px',
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+            <h2 style={{ color: '#c53030', marginBottom: '8px' }}>Error</h2>
+            <p style={{ color: '#666', fontSize: '16px' }}>{error}</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!ad) {
     return (
-      <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-        <div>Ad not found</div>
+      <div className="page-container">
+        <div className="container" style={{ maxWidth: '800px' }}>
+          <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
+            <h2 style={{ color: '#1a1a1a', marginBottom: '8px' }}>Ad not found</h2>
+            <p style={{ color: '#666' }}>The ad you're looking for doesn't exist or has been removed.</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -121,139 +140,208 @@ const AdDetails = () => {
   const hasMultipleImages = images.length > 1;
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <h1 style={{ marginBottom: '20px' }}>{ad.title}</h1>
-      
-      <div style={{ marginBottom: '20px', display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '28px' }}>
-            {ad.price} {ad.currency}
-          </h2>
+    <div className="page-container">
+      <div className="container" style={{ maxWidth: '1000px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', marginBottom: '32px' }}>
+          {/* Left Column - Images */}
+          <div>
+            {images.length > 0 ? (
+              <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                {mainImage && (
+                  <div style={{ 
+                    width: '100%', 
+                    aspectRatio: '1',
+                    backgroundColor: '#f8f9fa',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: hasMultipleImages ? '16px' : 0,
+                  }}>
+                    <img
+                      src={mainImage}
+                      alt={ad.title}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                      }}
+                    />
+                  </div>
+                )}
+                {hasMultipleImages && (
+                  <div style={{ 
+                    display: 'flex', 
+                    gap: '8px', 
+                    flexWrap: 'wrap',
+                    padding: '16px',
+                  }}>
+                    {images.map((image, index) => (
+                      <img
+                        key={index}
+                        src={image}
+                        alt={`${ad.title} - Image ${index + 1}`}
+                        onClick={() => setMainImageIndex(index)}
+                        style={{
+                          width: '80px',
+                          height: '80px',
+                          objectFit: 'cover',
+                          borderRadius: '8px',
+                          border: mainImageIndex === index ? '3px solid #007bff' : '2px solid #e0e0e0',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          opacity: mainImageIndex === index ? 1 : 0.7,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (mainImageIndex !== index) e.currentTarget.style.opacity = '1';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (mainImageIndex !== index) e.currentTarget.style.opacity = '0.7';
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="card" style={{
+                aspectRatio: '1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#f8f9fa',
+                color: '#999',
+              }}>
+                No image available
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Details */}
+          <div>
+            <div style={{ marginBottom: '24px' }}>
+              <h1 style={{ 
+                fontSize: '2rem', 
+                fontWeight: '700', 
+                color: '#1a1a1a',
+                marginBottom: '16px',
+                lineHeight: '1.2',
+              }}>
+                {ad.title}
+              </h1>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '16px',
+                marginBottom: '24px',
+                flexWrap: 'wrap',
+              }}>
+                <div>
+                  <div style={{ 
+                    fontSize: '2rem', 
+                    fontWeight: '700',
+                    color: '#007bff',
+                  }}>
+                    {ad.price} {ad.currency}
+                  </div>
+                </div>
+                {ad.status && (
+                  <div style={{
+                    display: 'inline-block',
+                    padding: '6px 14px',
+                    backgroundColor: ad.status === 'active' ? '#d4edda' : ad.status === 'sold' ? '#f8d7da' : '#e2e3e5',
+                    color: ad.status === 'active' ? '#155724' : ad.status === 'sold' ? '#721c24' : '#383d41',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    textTransform: 'uppercase',
+                  }}>
+                    {ad.status}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Seller Information Card */}
+            {(ad.owner || ad.user) && (
+              <div className="card" style={{ marginBottom: '24px' }}>
+                <h3 style={{ 
+                  marginBottom: '16px', 
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: '#1a1a1a',
+                }}>
+                  Seller Information
+                </h3>
+                {(ad.owner?.name || ad.user?.name) && (
+                  <div style={{ marginBottom: '12px', fontSize: '15px' }}>
+                    <span style={{ color: '#666', fontWeight: '500' }}>Name: </span>
+                    <span style={{ color: '#1a1a1a', fontWeight: '500' }}>
+                      {ad.owner?.name || ad.user?.name}
+                    </span>
+                  </div>
+                )}
+                {(ad.owner?.email || ad.user?.email) && (
+                  <div style={{ marginBottom: '20px', fontSize: '15px' }}>
+                    <span style={{ color: '#666', fontWeight: '500' }}>Email: </span>
+                    <span style={{ color: '#1a1a1a' }}>
+                      {ad.owner?.email || ad.user?.email}
+                    </span>
+                  </div>
+                )}
+                <button
+                  onClick={handleContactSeller}
+                  disabled={contacting}
+                  className="btn-primary"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    opacity: contacting ? 0.6 : 1,
+                  }}
+                >
+                  {contacting ? 'Starting conversation...' : '💬 Contact Seller'}
+                </button>
+              </div>
+            )}
+
+            {/* Posted Date */}
+            {ad.createdAt && (
+              <div className="card" style={{
+                backgroundColor: '#f8f9fa',
+                padding: '16px',
+              }}>
+                <div style={{ fontSize: '14px', color: '#666' }}>
+                  <strong>Posted:</strong> {formatDate(ad.createdAt)}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-        {ad.status && (
-          <div style={{
-            display: 'inline-block',
-            padding: '6px 12px',
-            backgroundColor: ad.status === 'active' ? '#d4edda' : ad.status === 'sold' ? '#f8d7da' : '#e2e3e5',
-            color: ad.status === 'active' ? '#155724' : ad.status === 'sold' ? '#721c24' : '#383d41',
-            borderRadius: '4px',
-            fontSize: '14px',
-            fontWeight: '500',
-            textTransform: 'uppercase',
-          }}>
-            {ad.status}
+
+        {/* Description */}
+        {ad.description && (
+          <div className="card">
+            <h2 style={{ 
+              marginBottom: '16px', 
+              fontSize: '1.5rem',
+              fontWeight: '600',
+              color: '#1a1a1a',
+            }}>
+              Description
+            </h2>
+            <p style={{ 
+              whiteSpace: 'pre-wrap', 
+              lineHeight: '1.8',
+              fontSize: '16px',
+              color: '#333',
+              margin: 0,
+            }}>
+              {ad.description}
+            </p>
           </div>
         )}
       </div>
-
-      {/* Image Gallery */}
-      {images.length > 0 && (
-        <div style={{ marginBottom: '30px' }}>
-          {/* Main Image */}
-          {mainImage && (
-            <div style={{ marginBottom: '16px' }}>
-              <img
-                src={mainImage}
-                alt={ad.title}
-                style={{
-                  width: '100%',
-                  maxHeight: '500px',
-                  objectFit: 'contain',
-                  borderRadius: '8px',
-                  border: '1px solid #ddd',
-                  backgroundColor: '#f8f9fa',
-                }}
-              />
-            </div>
-          )}
-          
-          {/* Thumbnails */}
-          {hasMultipleImages && (
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {images.map((image, index) => (
-                <img
-                  key={index}
-                  src={image}
-                  alt={`${ad.title} - Image ${index + 1}`}
-                  onClick={() => setMainImageIndex(index)}
-                  style={{
-                    width: '100px',
-                    height: '100px',
-                    objectFit: 'cover',
-                    borderRadius: '4px',
-                    border: mainImageIndex === index ? '3px solid #007bff' : '1px solid #ddd',
-                    cursor: 'pointer',
-                    opacity: mainImageIndex === index ? 1 : 0.7,
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Description */}
-      {ad.description && (
-        <div style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '12px' }}>Description</h3>
-          <p style={{ 
-            whiteSpace: 'pre-wrap', 
-            lineHeight: '1.6',
-            fontSize: '16px',
-            color: '#333',
-          }}>
-            {ad.description}
-          </p>
-        </div>
-      )}
-
-      {/* Owner Information */}
-      {(ad.owner || ad.user) && (
-        <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-          <h3 style={{ marginBottom: '8px', fontSize: '18px' }}>Seller Information</h3>
-          {(ad.owner?.name || ad.user?.name) && (
-            <div style={{ marginBottom: '4px' }}>
-              <strong>Name:</strong> {ad.owner?.name || ad.user?.name}
-            </div>
-          )}
-          {(ad.owner?.email || ad.user?.email) && (
-            <div style={{ marginBottom: '12px' }}>
-              <strong>Email:</strong> {ad.owner?.email || ad.user?.email}
-            </div>
-          )}
-          <button
-            onClick={handleContactSeller}
-            disabled={contacting}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#007bff',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: contacting ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              opacity: contacting ? 0.6 : 1,
-            }}
-          >
-            {contacting ? 'Starting conversation...' : 'Contact seller'}
-          </button>
-        </div>
-      )}
-
-      {/* Created Date */}
-      {ad.createdAt && (
-        <div style={{ 
-          marginTop: '20px', 
-          padding: '12px', 
-          backgroundColor: '#f8f9fa', 
-          borderRadius: '4px',
-          fontSize: '14px',
-          color: '#666',
-        }}>
-          <strong>Posted:</strong> {formatDate(ad.createdAt)}
-        </div>
-      )}
     </div>
   );
 };

@@ -38,36 +38,121 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div>
-      <h1>Forgot Password</h1>
-      {success ? (
-        <div>
-          <div style={{ color: 'green', marginBottom: '16px' }}>
-            If an account exists with this email, a password reset link has been sent.
-          </div>
-          <Link to="/login">Back to Login</Link>
+    <div className="page-container">
+      <div className="container" style={{ maxWidth: '450px' }}>
+        <div className="card">
+          {success ? (
+            <>
+              <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
+                <h1 style={{ 
+                  fontSize: '2rem', 
+                  fontWeight: '700', 
+                  color: '#1a1a1a',
+                  marginBottom: '8px',
+                }}>
+                  Check Your Email
+                </h1>
+                <p style={{ color: '#666', fontSize: '15px' }}>
+                  If an account exists with this email, a password reset link has been sent.
+                </p>
+              </div>
+              <Link 
+                to="/login"
+                className="btn-primary"
+                style={{ 
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  textAlign: 'center',
+                  display: 'block',
+                }}
+              >
+                Back to Login
+              </Link>
+            </>
+          ) : (
+            <>
+              <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                <h1 style={{ 
+                  fontSize: '2rem', 
+                  fontWeight: '700', 
+                  color: '#1a1a1a',
+                  marginBottom: '8px',
+                }}>
+                  Forgot Password?
+                </h1>
+                <p style={{ color: '#666', fontSize: '15px' }}>
+                  Enter your email and we'll send you a reset link
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit}>
+                <div style={{ marginBottom: '24px' }}>
+                  <label htmlFor="email">Email Address</label>
+                  <input
+                    type="email"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={loading}
+                    placeholder="Enter your email"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                {error && (
+                  <div style={{ 
+                    color: '#c53030', 
+                    backgroundColor: '#fff5f5',
+                    padding: '12px',
+                    borderRadius: '6px',
+                    marginBottom: '20px',
+                    fontSize: '14px',
+                    border: '1px solid #fed7d7',
+                  }}>
+                    {error}
+                  </div>
+                )}
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="btn-primary"
+                  style={{ 
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                  }}
+                >
+                  {loading ? 'Sending...' : 'Send Reset Link'}
+                </button>
+              </form>
+
+              <div style={{ 
+                marginTop: '24px', 
+                textAlign: 'center',
+                paddingTop: '24px',
+                borderTop: '1px solid #e0e0e0',
+              }}>
+                <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>
+                  Remember your password?{' '}
+                  <Link 
+                    to="/login" 
+                    style={{ 
+                      color: '#007bff',
+                      fontWeight: '500',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Sign in
+                  </Link>
+                </p>
+              </div>
+            </>
+          )}
         </div>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="email">Email:</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-          {error && <div style={{ color: 'red' }}>{error}</div>}
-          <button type="submit" disabled={loading}>
-            {loading ? 'Sending...' : 'Send Reset Link'}
-          </button>
-        </form>
-      )}
-      <p>
-        Remember your password? <Link to="/login">Login</Link>
-      </p>
+      </div>
     </div>
   );
 };

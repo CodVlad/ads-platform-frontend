@@ -92,64 +92,96 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
   return (
     <div 
       onClick={handleCardClick}
+      className="card"
       style={{
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-        padding: '16px',
-        margin: '8px',
-        maxWidth: '300px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         cursor: 'pointer',
+        padding: 0,
+        overflow: 'hidden',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.15)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
       }}
     >
       {coverImage && (
-        <img
-          src={coverImage}
-          alt={ad.title}
-          style={{
-            width: '100%',
-            height: '200px',
-            objectFit: 'cover',
-            borderRadius: '4px',
-            marginBottom: '12px',
-          }}
-        />
-      )}
-      <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>{ad.title}</h3>
-      <div style={{ marginBottom: '8px' }}>
-        <strong style={{ fontSize: '20px' }}>
-          {ad.price} {ad.currency}
-        </strong>
-      </div>
-      {ad.status && (
         <div style={{
-          display: 'inline-block',
-          padding: '4px 8px',
-          backgroundColor: '#f0f0f0',
-          borderRadius: '4px',
-          fontSize: '12px',
-          marginBottom: '12px',
+          width: '100%',
+          aspectRatio: '16/9',
+          overflow: 'hidden',
+          backgroundColor: '#f8f9fa',
         }}>
-          {ad.status}
+          <img
+            src={coverImage}
+            alt={ad.title}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
         </div>
       )}
-      <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', gap: '8px' }}>
+      <div style={{ padding: '16px' }}>
+        <h3 style={{ 
+          margin: '0 0 12px 0', 
+          fontSize: '18px',
+          fontWeight: '600',
+          color: '#1a1a1a',
+          lineHeight: '1.3',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        }}>
+          {ad.title}
+        </h3>
+        <div style={{ 
+          marginBottom: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          flexWrap: 'wrap',
+        }}>
+          <div style={{ 
+            fontSize: '22px', 
+            fontWeight: '700',
+            color: '#007bff',
+          }}>
+            {ad.price} {ad.currency}
+          </div>
+          {ad.status && (
+            <div style={{
+              display: 'inline-block',
+              padding: '4px 10px',
+              backgroundColor: ad.status === 'active' ? '#d4edda' : ad.status === 'sold' ? '#f8d7da' : '#e2e3e5',
+              color: ad.status === 'active' ? '#155724' : ad.status === 'sold' ? '#721c24' : '#383d41',
+              borderRadius: '12px',
+              fontSize: '11px',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+            }}>
+              {ad.status}
+            </div>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
           <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               navigate(`/ads/${adId}`);
             }}
+            className="btn-primary"
             style={{
-              padding: '8px 16px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              fontSize: '14px',
               flex: 1,
-              cursor: 'pointer',
+              padding: '10px',
+              fontSize: '14px',
+              fontWeight: '500',
             }}
           >
             View Details
@@ -158,35 +190,34 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
             <button
               onClick={handleFavoriteClick}
               disabled={busy || !canFavorite}
+              className={saved ? 'btn-danger' : 'btn-secondary'}
               style={{
-                padding: '8px 16px',
-                backgroundColor: saved ? '#dc3545' : '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
+                padding: '10px 16px',
                 fontSize: '14px',
-                cursor: (busy || !canFavorite) ? 'not-allowed' : 'pointer',
                 opacity: (busy || !canFavorite) ? 0.6 : 1,
+                cursor: (busy || !canFavorite) ? 'not-allowed' : 'pointer',
               }}
             >
-              {busy ? '...' : (saved ? '❤️ Saved' : '❤️ Save')}
+              {busy ? '...' : (saved ? '❤️' : '🤍')}
             </button>
           )}
         </div>
         {showFavoriteButton && !canFavorite && (
           <div style={{
-            color: '#666',
+            color: '#999',
             fontSize: '12px',
-            marginTop: '4px',
+            marginTop: '8px',
+            textAlign: 'center',
           }}>
             Activate ad to save
           </div>
         )}
         {showFavoriteButton && error && (
           <div style={{
-            color: 'red',
+            color: '#c53030',
             fontSize: '12px',
-            marginTop: '4px',
+            marginTop: '8px',
+            textAlign: 'center',
           }}>
             {error}
           </div>

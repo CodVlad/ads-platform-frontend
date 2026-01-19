@@ -64,47 +64,110 @@ const Register = () => {
   };
 
   return (
-    <div>
-      <h1>Register</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="name">Name:</label>
-          <input
-            type="text"
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            disabled={loading}
-          />
+    <div className="page-container">
+      <div className="container" style={{ maxWidth: '450px' }}>
+        <div className="card">
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <h1 style={{ 
+              fontSize: '2rem', 
+              fontWeight: '700', 
+              color: '#1a1a1a',
+              marginBottom: '8px',
+            }}>
+              Create Account
+            </h1>
+            <p style={{ color: '#666', fontSize: '15px' }}>
+              Join us and start posting your ads today
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: '20px' }}>
+              <label htmlFor="name">Full Name</label>
+              <input
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={loading}
+                placeholder="Enter your full name"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div style={{ marginBottom: '20px' }}>
+              <label htmlFor="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                placeholder="Enter your email"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div style={{ marginBottom: '24px' }}>
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                placeholder="Create a password"
+                style={{ width: '100%' }}
+              />
+            </div>
+            {error && (
+              <div style={{ 
+                color: '#c53030', 
+                backgroundColor: '#fff5f5',
+                padding: '12px',
+                borderRadius: '6px',
+                marginBottom: '20px',
+                fontSize: '14px',
+                border: '1px solid #fed7d7',
+              }}>
+                {error}
+              </div>
+            )}
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="btn-primary"
+              style={{ 
+                width: '100%',
+                padding: '12px',
+                fontSize: '16px',
+                fontWeight: '600',
+              }}
+            >
+              {loading ? 'Creating account...' : 'Create Account'}
+            </button>
+          </form>
+
+          <div style={{ 
+            marginTop: '24px', 
+            textAlign: 'center',
+            paddingTop: '24px',
+            borderTop: '1px solid #e0e0e0',
+          }}>
+            <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>
+              Already have an account?{' '}
+              <Link 
+                to="/login" 
+                style={{ 
+                  color: '#007bff',
+                  fontWeight: '500',
+                  textDecoration: 'none',
+                }}
+              >
+                Sign in
+              </Link>
+            </p>
+          </div>
         </div>
-        <div>
-          <label htmlFor="email">Email:</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={loading}
-          />
-        </div>
-        <div>
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={loading}
-          />
-        </div>
-        {error && <div style={{ color: 'red' }}>{error}</div>}
-        <button type="submit" disabled={loading}>
-          {loading ? 'Registering...' : 'Register'}
-        </button>
-      </form>
-      <p>
-        Already have an account? <Link to="/login">Login</Link>
-      </p>
+      </div>
     </div>
   );
 };

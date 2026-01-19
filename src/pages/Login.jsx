@@ -63,42 +63,113 @@ const Login = () => {
   };
 
   return (
-    <div>
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="email">Email:</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={loading}
-          />
+    <div className="page-container">
+      <div className="container" style={{ maxWidth: '450px' }}>
+        <div className="card">
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <h1 style={{ 
+              fontSize: '2rem', 
+              fontWeight: '700', 
+              color: '#1a1a1a',
+              marginBottom: '8px',
+            }}>
+              Welcome Back
+            </h1>
+            <p style={{ color: '#666', fontSize: '15px' }}>
+              Sign in to your account to continue
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: '20px' }}>
+              <label htmlFor="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                placeholder="Enter your email"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div style={{ marginBottom: '12px' }}>
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                placeholder="Enter your password"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div style={{ 
+              marginBottom: '24px', 
+              textAlign: 'right',
+            }}>
+              <Link 
+                to="/forgot-password" 
+                style={{ 
+                  fontSize: '14px', 
+                  color: '#007bff',
+                  textDecoration: 'none',
+                }}
+              >
+                Forgot password?
+              </Link>
+            </div>
+            {error && (
+              <div style={{ 
+                color: '#c53030', 
+                backgroundColor: '#fff5f5',
+                padding: '12px',
+                borderRadius: '6px',
+                marginBottom: '20px',
+                fontSize: '14px',
+                border: '1px solid #fed7d7',
+              }}>
+                {error}
+              </div>
+            )}
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="btn-primary"
+              style={{ 
+                width: '100%',
+                padding: '12px',
+                fontSize: '16px',
+                fontWeight: '600',
+              }}
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div style={{ 
+            marginTop: '24px', 
+            textAlign: 'center',
+            paddingTop: '24px',
+            borderTop: '1px solid #e0e0e0',
+          }}>
+            <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>
+              Don't have an account?{' '}
+              <Link 
+                to="/register" 
+                style={{ 
+                  color: '#007bff',
+                  fontWeight: '500',
+                  textDecoration: 'none',
+                }}
+              >
+                Create one now
+              </Link>
+            </p>
+          </div>
         </div>
-        <div>
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={loading}
-          />
-        </div>
-        <div style={{ marginTop: '8px', marginBottom: '8px' }}>
-          <Link to="/forgot-password" style={{ fontSize: '14px', color: '#007bff' }}>
-            Forgot password?
-          </Link>
-        </div>
-        {error && <div style={{ color: 'red' }}>{error}</div>}
-        <button type="submit" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
-      <p>
-        Don't have an account? <Link to="/register">Register</Link>
-      </p>
+      </div>
     </div>
   );
 };

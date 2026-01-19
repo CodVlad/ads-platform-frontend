@@ -49,40 +49,29 @@ const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
   };
 
   return (
-    <div style={{
-      padding: '16px',
-      backgroundColor: '#f8f9fa',
-      borderRadius: '8px',
-      marginBottom: '20px',
-    }}>
+    <div className="card" style={{ marginBottom: '24px' }}>
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '12px',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+        gap: '16px',
         alignItems: 'end',
       }}>
         <div>
-          <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
-            Search
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+            🔍 Search
           </label>
           <input
             type="text"
             name="q"
             value={filters.q}
             onChange={(e) => handleChange('q', e.target.value)}
-            placeholder="Search..."
-            style={{
-              width: '100%',
-              padding: '8px',
-              fontSize: '14px',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-            }}
+            placeholder="Search ads..."
+            style={{ width: '100%' }}
           />
         </div>
 
         <div>
-          <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
             Min Price
           </label>
           <input
@@ -92,18 +81,12 @@ const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
             placeholder="Min"
             min="0"
             step="0.01"
-            style={{
-              width: '100%',
-              padding: '8px',
-              fontSize: '14px',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-            }}
+            style={{ width: '100%' }}
           />
         </div>
 
         <div>
-          <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
             Max Price
           </label>
           <input
@@ -113,30 +96,18 @@ const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
             placeholder="Max"
             min="0"
             step="0.01"
-            style={{
-              width: '100%',
-              padding: '8px',
-              fontSize: '14px',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-            }}
+            style={{ width: '100%' }}
           />
         </div>
 
         <div>
-          <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
             Currency
           </label>
           <select
             value={filters.currency}
             onChange={(e) => handleChange('currency', e.target.value)}
-            style={{
-              width: '100%',
-              padding: '8px',
-              fontSize: '14px',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-            }}
+            style={{ width: '100%' }}
           >
             <option value="">All Currencies</option>
             <option value="EUR">EUR</option>
@@ -148,31 +119,15 @@ const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             onClick={handleApply}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              fontSize: '14px',
-              cursor: 'pointer',
-              fontWeight: '500',
-            }}
+            className="btn-primary"
+            style={{ flex: 1, padding: '10px 16px' }}
           >
             Apply
           </button>
           <button
             onClick={handleReset}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              fontSize: '14px',
-              cursor: 'pointer',
-              fontWeight: '500',
-            }}
+            className="btn-secondary"
+            style={{ flex: 1, padding: '10px 16px' }}
           >
             Reset
           </button>
