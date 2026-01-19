@@ -286,57 +286,172 @@ const MyAds = () => {
   const activeCount = ads.filter((ad) => ad.status === 'active').length;
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0 }}>My Ads</h1>
-        {!loading && (
-          <button
-            onClick={fetchMyAds}
-            disabled={loading}
-            style={{
-              padding: '6px 12px',
-              backgroundColor: loading ? '#ccc' : '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              fontSize: '14px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.6 : 1,
-            }}
-          >
-            {loading ? 'Reloading...' : 'Reload'}
-          </button>
+    <div className="page-container">
+      <div className="container">
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '32px',
+          flexWrap: 'wrap',
+          gap: '16px',
+        }}>
+          <div>
+            <h1 style={{ 
+              fontSize: '2.5rem', 
+              fontWeight: '700', 
+              color: '#1a1a1a',
+              marginBottom: '8px',
+            }}>
+              📋 My Ads
+            </h1>
+            {!loading && ads.length > 0 && (
+              <p style={{ 
+                fontSize: '1.1rem', 
+                color: '#666',
+                margin: 0,
+              }}>
+                Manage your ads and track their status
+              </p>
+            )}
+          </div>
+          {!loading && (
+            <button
+              onClick={fetchMyAds}
+              disabled={loading}
+              className="btn-secondary"
+              style={{
+                padding: '10px 20px',
+                fontSize: '14px',
+                fontWeight: '500',
+              }}
+            >
+              {loading ? 'Reloading...' : '🔄 Refresh'}
+            </button>
+          )}
+        </div>
+
+        {loading && (
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '60px 20px',
+            color: '#666',
+            fontSize: '18px',
+          }}>
+            Loading your ads...
+          </div>
         )}
-      </div>
+        
+        {error && (
+          <div className="card" style={{
+            backgroundColor: '#fff5f5',
+            border: '1px solid #fed7d7',
+            marginBottom: '24px',
+          }}>
+            <div style={{ 
+              color: '#c53030', 
+              fontSize: '16px',
+              fontWeight: '500',
+            }}>
+              {error}
+            </div>
+          </div>
+        )}
 
-      {loading && <div>Loading...</div>}
-      
-      {error && <div style={{ color: 'red' }}>{error}</div>}
-
-      {!loading && !error && (
-        <>
-          {ads.length === 0 ? (
-            <div>You have no ads yet</div>
-          ) : (
-            <>
-              <div style={{ marginBottom: '20px' }}>
-                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                  <div>
-                    <strong>Total:</strong> {total}
-                  </div>
-                  <div>
-                    <strong>Draft:</strong> {draftCount}
-                  </div>
-                  <div>
-                    <strong>Active:</strong> {activeCount}
+        {!loading && !error && (
+          <>
+            {ads.length === 0 ? (
+              <div className="card" style={{ 
+                textAlign: 'center', 
+                padding: '60px 20px',
+              }}>
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
+                <h3 style={{ 
+                  color: '#1a1a1a', 
+                  marginBottom: '8px',
+                  fontSize: '1.5rem',
+                  fontWeight: '600',
+                }}>
+                  No ads yet
+                </h3>
+                <p style={{ color: '#666', fontSize: '16px', marginBottom: '24px' }}>
+                  Create your first ad to get started
+                </p>
+                <a
+                  href="/#/create"
+                  className="btn-primary"
+                  style={{
+                    display: 'inline-block',
+                    padding: '12px 24px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    textDecoration: 'none',
+                  }}
+                >
+                  ➕ Create Ad
+                </a>
+              </div>
+            ) : (
+              <>
+                <div className="card" style={{ 
+                  marginBottom: '24px',
+                  padding: '20px',
+                }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    gap: '32px', 
+                    flexWrap: 'wrap',
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}>
+                      <span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>Total:</span>
+                      <span style={{ 
+                        fontSize: '20px', 
+                        fontWeight: '700',
+                        color: '#1a1a1a',
+                      }}>
+                        {total}
+                      </span>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}>
+                      <span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>Draft:</span>
+                      <span style={{ 
+                        fontSize: '20px', 
+                        fontWeight: '700',
+                        color: '#6c757d',
+                      }}>
+                        {draftCount}
+                      </span>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}>
+                      <span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>Active:</span>
+                      <span style={{ 
+                        fontSize: '20px', 
+                        fontWeight: '700',
+                        color: '#28a745',
+                      }}>
+                        {activeCount}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '16px',
-              }}>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                  gap: '24px',
+                  marginBottom: '32px',
+                }}>
                 {ads.map((ad) => {
                   const adId = ad._id || ad.id;
                   const isUpdating = loadingById[adId] || false;
@@ -350,90 +465,127 @@ const MyAds = () => {
                   return (
                     <div
                       key={adId}
+                      className="card"
                       style={{
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        padding: '16px',
-                        margin: '8px',
-                        maxWidth: '300px',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                        padding: 0,
+                        overflow: 'hidden',
                       }}
                     >
                       {!isEditing ? (
                         <>
                           {coverImage && (
-                            <img
-                              src={coverImage}
-                              alt={ad.title}
-                              style={{
-                                width: '100%',
-                                height: '200px',
-                                objectFit: 'cover',
-                                borderRadius: '4px',
-                                marginBottom: '12px',
-                              }}
-                            />
-                          )}
-                          <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>{ad.title}</h3>
-                          <div style={{ marginBottom: '8px' }}>
-                            <strong style={{ fontSize: '20px' }}>
-                              {ad.price} {ad.currency}
-                            </strong>
-                          </div>
-                          {ad.description && (
-                            <div style={{ marginBottom: '8px', fontSize: '14px', color: '#666' }}>
-                              {ad.description.length > 100
-                                ? `${ad.description.substring(0, 100)}...`
-                                : ad.description}
-                            </div>
-                          )}
-                          {ad.status && (
                             <div style={{
-                              display: 'inline-block',
-                              padding: '4px 8px',
-                              backgroundColor: '#f0f0f0',
-                              borderRadius: '4px',
-                              fontSize: '12px',
-                              marginBottom: '12px',
+                              width: '100%',
+                              aspectRatio: '16/9',
+                              overflow: 'hidden',
+                              backgroundColor: '#f8f9fa',
                             }}>
-                              {ad.status}
+                              <img
+                                src={coverImage}
+                                alt={ad.title}
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                }}
+                              />
                             </div>
                           )}
-                          <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <div style={{ padding: '16px' }}>
+                            <h3 style={{ 
+                              margin: '0 0 12px 0', 
+                              fontSize: '18px',
+                              fontWeight: '600',
+                              color: '#1a1a1a',
+                              lineHeight: '1.3',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                            }}>
+                              {ad.title}
+                            </h3>
+                            <div style={{ 
+                              marginBottom: '12px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              flexWrap: 'wrap',
+                            }}>
+                              <div style={{ 
+                                fontSize: '22px', 
+                                fontWeight: '700',
+                                color: '#007bff',
+                              }}>
+                                {ad.price} {ad.currency}
+                              </div>
+                              {ad.status && (
+                                <div style={{
+                                  display: 'inline-block',
+                                  padding: '4px 10px',
+                                  backgroundColor: ad.status === 'active' ? '#d4edda' : ad.status === 'sold' ? '#f8d7da' : ad.status === 'draft' ? '#e2e3e5' : '#e2e3e5',
+                                  color: ad.status === 'active' ? '#155724' : ad.status === 'sold' ? '#721c24' : '#383d41',
+                                  borderRadius: '12px',
+                                  fontSize: '11px',
+                                  fontWeight: '600',
+                                  textTransform: 'uppercase',
+                                }}>
+                                  {ad.status}
+                                </div>
+                              )}
+                            </div>
+                            {ad.description && (
+                              <div style={{ 
+                                marginBottom: '16px', 
+                                fontSize: '14px', 
+                                color: '#666',
+                                lineHeight: '1.5',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 3,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                              }}>
+                                {ad.description}
+                              </div>
+                            )}
+                            <div style={{ 
+                              marginTop: '16px', 
+                              display: 'flex', 
+                              gap: '8px', 
+                              flexWrap: 'wrap' 
+                            }}>
                             {canEdit && (
                               <button
                                 onClick={() => handleEditClick(ad)}
                                 disabled={isUpdating}
+                                className="btn-primary"
                                 style={{
-                                  padding: '8px 16px',
-                                  backgroundColor: isUpdating ? '#ccc' : '#007bff',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '4px',
+                                  flex: 1,
+                                  padding: '10px',
                                   fontSize: '14px',
-                                  cursor: isUpdating ? 'not-allowed' : 'pointer',
+                                  fontWeight: '500',
                                   opacity: isUpdating ? 0.6 : 1,
+                                  cursor: isUpdating ? 'not-allowed' : 'pointer',
                                 }}
                               >
-                                Edit
+                                ✏️ Edit
                               </button>
                             )}
                             {ad.status === 'draft' && (
                               <button
                                 onClick={() => handleStatusUpdate(adId, 'active')}
                                 disabled={isUpdating}
+                                className="btn-success"
                                 style={{
-                                  padding: '8px 16px',
-                                  backgroundColor: isUpdating ? '#ccc' : '#28a745',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '4px',
+                                  flex: 1,
+                                  padding: '10px',
                                   fontSize: '14px',
-                                  cursor: isUpdating ? 'not-allowed' : 'pointer',
+                                  fontWeight: '500',
                                   opacity: isUpdating ? 0.6 : 1,
+                                  cursor: isUpdating ? 'not-allowed' : 'pointer',
                                 }}
                               >
-                                {isUpdating ? 'Publishing...' : 'Publish'}
+                                {isUpdating ? 'Publishing...' : '📢 Publish'}
                               </button>
                             )}
                             {ad.status === 'active' && (
@@ -441,59 +593,86 @@ const MyAds = () => {
                                 onClick={() => handleStatusUpdate(adId, 'sold')}
                                 disabled={isUpdating}
                                 style={{
-                                  padding: '8px 16px',
+                                  flex: 1,
+                                  padding: '10px',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
                                   backgroundColor: isUpdating ? '#ccc' : '#ffc107',
                                   color: 'white',
                                   border: 'none',
-                                  borderRadius: '4px',
-                                  fontSize: '14px',
-                                  cursor: isUpdating ? 'not-allowed' : 'pointer',
+                                  borderRadius: '6px',
                                   opacity: isUpdating ? 0.6 : 1,
+                                  cursor: isUpdating ? 'not-allowed' : 'pointer',
                                 }}
                               >
-                                {isUpdating ? 'Updating...' : 'Mark sold'}
+                                {isUpdating ? 'Updating...' : '✅ Mark sold'}
                               </button>
                             )}
                             {ad.status === 'sold' && (
-                              <div style={{ fontSize: '14px', color: '#666' }}>
-                                Ad is sold
+                              <div style={{ 
+                                flex: 1,
+                                padding: '10px',
+                                fontSize: '14px',
+                                color: '#666',
+                                textAlign: 'center',
+                                backgroundColor: '#f8f9fa',
+                                borderRadius: '6px',
+                              }}>
+                                ✓ Sold
                               </div>
                             )}
                             {(ad.status === 'draft' || ad.status === 'active' || ad.status === 'sold') && (
                               <button
                                 onClick={() => handleDelete(adId)}
                                 disabled={isUpdating}
+                                className="btn-danger"
                                 style={{
-                                  padding: '8px 16px',
-                                  backgroundColor: isUpdating ? '#ccc' : '#dc3545',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '4px',
+                                  flex: 1,
+                                  padding: '10px',
                                   fontSize: '14px',
-                                  cursor: isUpdating ? 'not-allowed' : 'pointer',
+                                  fontWeight: '500',
                                   opacity: isUpdating ? 0.6 : 1,
+                                  cursor: isUpdating ? 'not-allowed' : 'pointer',
                                 }}
                               >
-                                {isUpdating ? 'Deleting...' : 'Delete'}
+                                {isUpdating ? 'Deleting...' : '🗑️ Delete'}
                               </button>
                             )}
-                          </div>
-                          {adError && (
-                            <div style={{
-                              color: 'red',
-                              fontSize: '12px',
-                              marginTop: '8px',
-                              whiteSpace: 'pre-line',
-                            }}>
-                              {adError}
                             </div>
-                          )}
+                            {adError && (
+                              <div style={{
+                                color: '#c53030',
+                                fontSize: '12px',
+                                marginTop: '12px',
+                                padding: '8px',
+                                backgroundColor: '#fff5f5',
+                                borderRadius: '6px',
+                                border: '1px solid #fed7d7',
+                                whiteSpace: 'pre-line',
+                              }}>
+                                {adError}
+                              </div>
+                            )}
+                          </div>
                         </>
                       ) : (
-                        <div style={{ marginTop: '12px' }}>
-                          <h4 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Edit Ad</h4>
-                          <div style={{ marginBottom: '12px' }}>
-                            <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px' }}>
+                        <div style={{ padding: '16px' }}>
+                          <h4 style={{ 
+                            margin: '0 0 20px 0', 
+                            fontSize: '18px',
+                            fontWeight: '600',
+                            color: '#1a1a1a',
+                          }}>
+                            ✏️ Edit Ad
+                          </h4>
+                          <div style={{ marginBottom: '16px' }}>
+                            <label style={{ 
+                              display: 'block', 
+                              marginBottom: '6px', 
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              color: '#333',
+                            }}>
                               Title *
                             </label>
                             <input
@@ -501,12 +680,13 @@ const MyAds = () => {
                               value={editFormData.title || ''}
                               onChange={(e) => handleFormDataChange(adId, 'title', e.target.value)}
                               disabled={isUpdating}
+                              placeholder="Enter ad title"
                               style={{
                                 width: '100%',
-                                padding: '6px',
+                                padding: '10px 14px',
                                 fontSize: '14px',
-                                border: validationErrors.title ? '1px solid red' : '1px solid #ddd',
-                                borderRadius: '4px',
+                                border: validationErrors.title ? '1px solid #dc3545' : '1px solid #ddd',
+                                borderRadius: '6px',
                               }}
                             />
                             {validationErrors.title && (
@@ -515,8 +695,14 @@ const MyAds = () => {
                               </div>
                             )}
                           </div>
-                          <div style={{ marginBottom: '12px' }}>
-                            <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px' }}>
+                          <div style={{ marginBottom: '16px' }}>
+                            <label style={{ 
+                              display: 'block', 
+                              marginBottom: '6px', 
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              color: '#333',
+                            }}>
                               Description (min 20 chars) *
                             </label>
                             <textarea
@@ -524,16 +710,22 @@ const MyAds = () => {
                               onChange={(e) => handleFormDataChange(adId, 'description', e.target.value)}
                               disabled={isUpdating}
                               rows={4}
+                              placeholder="Enter ad description (minimum 20 characters)"
                               style={{
                                 width: '100%',
-                                padding: '6px',
+                                padding: '10px 14px',
                                 fontSize: '14px',
-                                border: validationErrors.description ? '1px solid red' : '1px solid #ddd',
-                                borderRadius: '4px',
+                                border: validationErrors.description ? '1px solid #dc3545' : '1px solid #ddd',
+                                borderRadius: '6px',
                                 fontFamily: 'inherit',
+                                resize: 'vertical',
                               }}
                             />
-                            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                            <div style={{ 
+                              fontSize: '12px', 
+                              color: validationErrors.description ? '#dc3545' : '#666', 
+                              marginTop: '6px',
+                            }}>
                               {editFormData.description?.length || 0} / 20 characters
                             </div>
                             {validationErrors.description && (
@@ -542,9 +734,15 @@ const MyAds = () => {
                               </div>
                             )}
                           </div>
-                          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
                             <div style={{ flex: 1 }}>
-                              <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px' }}>
+                              <label style={{ 
+                                display: 'block', 
+                                marginBottom: '6px', 
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                color: '#333',
+                              }}>
                                 Price *
                               </label>
                               <input
@@ -554,12 +752,13 @@ const MyAds = () => {
                                 disabled={isUpdating}
                                 min="0"
                                 step="0.01"
+                                placeholder="0.00"
                                 style={{
                                   width: '100%',
-                                  padding: '6px',
+                                  padding: '10px 14px',
                                   fontSize: '14px',
-                                  border: validationErrors.price ? '1px solid red' : '1px solid #ddd',
-                                  borderRadius: '4px',
+                                  border: validationErrors.price ? '1px solid #dc3545' : '1px solid #ddd',
+                                  borderRadius: '6px',
                                 }}
                               />
                               {validationErrors.price && (
@@ -569,7 +768,13 @@ const MyAds = () => {
                               )}
                             </div>
                             <div style={{ flex: 1 }}>
-                              <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px' }}>
+                              <label style={{ 
+                                display: 'block', 
+                                marginBottom: '6px', 
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                color: '#333',
+                              }}>
                                 Currency *
                               </label>
                               <select
@@ -578,10 +783,10 @@ const MyAds = () => {
                                 disabled={isUpdating}
                                 style={{
                                   width: '100%',
-                                  padding: '6px',
+                                  padding: '10px 14px',
                                   fontSize: '14px',
                                   border: '1px solid #ddd',
-                                  borderRadius: '4px',
+                                  borderRadius: '6px',
                                 }}
                               >
                                 <option value="EUR">EUR</option>
@@ -590,35 +795,33 @@ const MyAds = () => {
                               </select>
                             </div>
                           </div>
-                          <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                          <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
                             <button
                               onClick={() => handleSaveEdit(adId)}
                               disabled={isUpdating}
+                              className="btn-success"
                               style={{
-                                padding: '8px 16px',
-                                backgroundColor: isUpdating ? '#ccc' : '#28a745',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
+                                flex: 1,
+                                padding: '10px',
                                 fontSize: '14px',
-                                cursor: isUpdating ? 'not-allowed' : 'pointer',
+                                fontWeight: '500',
                                 opacity: isUpdating ? 0.6 : 1,
+                                cursor: isUpdating ? 'not-allowed' : 'pointer',
                               }}
                             >
-                              {isUpdating ? 'Saving...' : 'Save'}
+                              {isUpdating ? 'Saving...' : '💾 Save'}
                             </button>
                             <button
                               onClick={() => handleCancelEdit(adId)}
                               disabled={isUpdating}
+                              className="btn-secondary"
                               style={{
-                                padding: '8px 16px',
-                                backgroundColor: isUpdating ? '#ccc' : '#6c757d',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
+                                flex: 1,
+                                padding: '10px',
                                 fontSize: '14px',
-                                cursor: isUpdating ? 'not-allowed' : 'pointer',
+                                fontWeight: '500',
                                 opacity: isUpdating ? 0.6 : 1,
+                                cursor: isUpdating ? 'not-allowed' : 'pointer',
                               }}
                             >
                               Cancel
@@ -626,9 +829,13 @@ const MyAds = () => {
                           </div>
                           {adError && (
                             <div style={{
-                              color: 'red',
+                              color: '#c53030',
                               fontSize: '12px',
-                              marginTop: '8px',
+                              marginTop: '12px',
+                              padding: '8px',
+                              backgroundColor: '#fff5f5',
+                              borderRadius: '6px',
+                              border: '1px solid #fed7d7',
                               whiteSpace: 'pre-line',
                             }}>
                               {adError}
