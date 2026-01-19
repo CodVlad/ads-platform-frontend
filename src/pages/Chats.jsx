@@ -63,72 +63,137 @@ const Chats = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <div>Loading conversations...</div>
+      <div className="page-container">
+        <div className="container" style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <div style={{ fontSize: '18px', color: '#666' }}>Loading conversations...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <h1 style={{ marginBottom: '20px' }}>My Conversations</h1>
-      
-      {chats.length === 0 ? (
-        <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
-          No conversations yet. Start a conversation by contacting a seller!
+    <div className="page-container">
+      <div className="container" style={{ maxWidth: '900px' }}>
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ 
+            fontSize: '2.5rem', 
+            fontWeight: '700', 
+            color: '#1a1a1a',
+            marginBottom: '8px',
+          }}>
+            💬 My Conversations
+          </h1>
+          <p style={{ 
+            fontSize: '1.1rem', 
+            color: '#666',
+            margin: 0,
+          }}>
+            {chats.length > 0 
+              ? `${chats.length} ${chats.length === 1 ? 'conversation' : 'conversations'}`
+              : 'Your conversations will appear here'
+            }
+          </p>
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {chats.map((chat) => {
-            const otherParticipant = getOtherParticipant(chat);
-            const lastMessage = chat.lastMessage;
-            
-            return (
-              <div
-                key={chat._id}
-                onClick={() => navigate(`/chats/${chat._id}`)}
-                style={{
-                  padding: '16px',
-                  border: '1px solid #ddd',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  backgroundColor: '#fff',
-                  transition: 'background-color 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f8f9fa';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#fff';
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: '600', fontSize: '16px', marginBottom: '4px' }}>
-                      {otherParticipant?.name || 'Unknown User'}
-                    </div>
-                    {chat.ad && (
-                      <div style={{ fontSize: '14px', color: '#666', marginBottom: '4px' }}>
-                        {chat.ad.title}
+        
+        {chats.length === 0 ? (
+          <div className="card" style={{ 
+            textAlign: 'center', 
+            padding: '60px 20px',
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>💬</div>
+            <h3 style={{ 
+              color: '#1a1a1a', 
+              marginBottom: '8px',
+              fontSize: '1.5rem',
+              fontWeight: '600',
+            }}>
+              No conversations yet
+            </h3>
+            <p style={{ color: '#666', fontSize: '16px' }}>
+              Start a conversation by contacting a seller from an ad
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {chats.map((chat) => {
+              const otherParticipant = getOtherParticipant(chat);
+              const lastMessage = chat.lastMessage;
+              
+              return (
+                <div
+                  key={chat._id}
+                  onClick={() => navigate(`/chats/${chat._id}`)}
+                  className="card"
+                  style={{
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    padding: '20px',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                  }}
+                >
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'flex-start',
+                    gap: '16px',
+                  }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ 
+                        fontWeight: '600', 
+                        fontSize: '18px', 
+                        marginBottom: '8px',
+                        color: '#1a1a1a',
+                      }}>
+                        {otherParticipant?.name || 'Unknown User'}
                       </div>
-                    )}
-                    {lastMessage && (
-                      <div style={{ fontSize: '14px', color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {lastMessage.text}
+                      {chat.ad && (
+                        <div style={{ 
+                          fontSize: '14px', 
+                          color: '#666', 
+                          marginBottom: '8px',
+                          fontWeight: '500',
+                        }}>
+                          📋 {chat.ad.title}
+                        </div>
+                      )}
+                      {lastMessage && (
+                        <div style={{ 
+                          fontSize: '14px', 
+                          color: '#888',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          lineHeight: '1.5',
+                        }}>
+                          {lastMessage.text}
+                        </div>
+                      )}
+                    </div>
+                    {chat.updatedAt && (
+                      <div style={{ 
+                        fontSize: '12px', 
+                        color: '#999', 
+                        whiteSpace: 'nowrap',
+                        fontWeight: '500',
+                        paddingTop: '2px',
+                      }}>
+                        {formatDate(chat.updatedAt)}
                       </div>
                     )}
                   </div>
-                  {chat.updatedAt && (
-                    <div style={{ fontSize: '12px', color: '#999', marginLeft: '12px', whiteSpace: 'nowrap' }}>
-                      {formatDate(chat.updatedAt)}
-                    </div>
-                  )}
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

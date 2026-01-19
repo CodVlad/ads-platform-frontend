@@ -108,108 +108,209 @@ const ChatDetail = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <div>Loading messages...</div>
+      <div className="page-container">
+        <div className="container" style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <div style={{ fontSize: '18px', color: '#666' }}>Loading messages...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)', maxWidth: '800px', margin: '0 auto' }}>
-      <div style={{ padding: '16px', borderBottom: '1px solid #ddd', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <button
-          onClick={() => navigate('/chats')}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '18px',
-            padding: '4px 8px',
-          }}
-        >
-          ← Back
-        </button>
-        <h1 style={{ margin: 0, fontSize: '20px' }}>Chat</h1>
-      </div>
+    <div className="page-container" style={{ padding: 0 }}>
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        height: 'calc(100vh - 70px)',
+        maxWidth: '1000px',
+        margin: '0 auto',
+        backgroundColor: '#fff',
+      }}>
+        {/* Header */}
+        <div className="card" style={{ 
+          margin: 0,
+          borderRadius: 0,
+          borderBottom: '1px solid #e0e0e0',
+          padding: '16px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+        }}>
+          <button
+            onClick={() => navigate('/chats')}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '20px',
+              padding: '8px',
+              color: '#007bff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '6px',
+              transition: 'background-color 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#f0f0f0';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
+            ←
+          </button>
+          <h1 style={{ 
+            margin: 0, 
+            fontSize: '1.5rem',
+            fontWeight: '600',
+            color: '#1a1a1a',
+          }}>
+            Conversation
+          </h1>
+        </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {messages.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#666', padding: '40px' }}>
-            No messages yet. Start the conversation!
-          </div>
-        ) : (
-          messages.map((message) => {
-            const isOwn = message.sender === user?._id || message.sender?._id === user?._id;
-            
-            return (
-              <div
-                key={message._id}
-                style={{
-                  display: 'flex',
-                  justifyContent: isOwn ? 'flex-end' : 'flex-start',
-                }}
-              >
+        {/* Messages Area */}
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '24px',
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '16px',
+          backgroundColor: '#f8f9fa',
+        }}>
+          {messages.length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              color: '#666', 
+              padding: '60px 20px',
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>💬</div>
+              <h3 style={{ 
+                color: '#1a1a1a',
+                marginBottom: '8px',
+                fontSize: '1.25rem',
+                fontWeight: '600',
+              }}>
+                No messages yet
+              </h3>
+              <p style={{ color: '#666', fontSize: '15px' }}>
+                Start the conversation!
+              </p>
+            </div>
+          ) : (
+            messages.map((message) => {
+              const isOwn = message.sender === user?._id || message.sender?._id === user?._id;
+              
+              return (
                 <div
+                  key={message._id}
                   style={{
-                    maxWidth: '70%',
-                    padding: '10px 14px',
-                    borderRadius: '12px',
-                    backgroundColor: isOwn ? '#007bff' : '#e9ecef',
-                    color: isOwn ? '#fff' : '#000',
+                    display: 'flex',
+                    justifyContent: isOwn ? 'flex-end' : 'flex-start',
+                    alignItems: 'flex-end',
+                    gap: '8px',
                   }}
                 >
-                  {!isOwn && message.senderName && (
-                    <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', opacity: 0.8 }}>
-                      {message.senderName}
+                  <div
+                    style={{
+                      maxWidth: '70%',
+                      padding: '12px 16px',
+                      borderRadius: isOwn ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                      backgroundColor: isOwn ? '#007bff' : '#fff',
+                      color: isOwn ? '#fff' : '#1a1a1a',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                    }}
+                  >
+                    {!isOwn && message.senderName && (
+                      <div style={{ 
+                        fontSize: '12px', 
+                        fontWeight: '600', 
+                        marginBottom: '6px', 
+                        opacity: 0.9,
+                      }}>
+                        {message.senderName}
+                      </div>
+                    )}
+                    <div style={{ 
+                      marginBottom: '4px', 
+                      wordBreak: 'break-word',
+                      lineHeight: '1.5',
+                      fontSize: '15px',
+                    }}>
+                      {message.text}
                     </div>
-                  )}
-                  <div style={{ marginBottom: '4px', wordBreak: 'break-word' }}>
-                    {message.text}
-                  </div>
-                  <div style={{ fontSize: '11px', opacity: 0.7, textAlign: 'right' }}>
-                    {formatTime(message.createdAt)}
+                    <div style={{ 
+                      fontSize: '11px', 
+                      opacity: 0.7, 
+                      textAlign: 'right',
+                      marginTop: '4px',
+                    }}>
+                      {formatTime(message.createdAt)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+              );
+            })
+          )}
+          <div ref={messagesEndRef} />
+        </div>
 
-      <form onSubmit={handleSend} style={{ padding: '16px', borderTop: '1px solid #ddd', display: 'flex', gap: '8px' }}>
-        <input
-          type="text"
-          value={messageText}
-          onChange={(e) => setMessageText(e.target.value)}
-          placeholder="Type a message..."
-          disabled={sending}
-          style={{
-            flex: 1,
-            padding: '10px 14px',
-            border: '1px solid #ddd',
-            borderRadius: '20px',
-            fontSize: '14px',
-          }}
-        />
-        <button
-          type="submit"
-          disabled={!messageText.trim() || sending}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#007bff',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '20px',
-            cursor: !messageText.trim() || sending ? 'not-allowed' : 'pointer',
-            opacity: !messageText.trim() || sending ? 0.5 : 1,
-            fontSize: '14px',
-            fontWeight: '500',
+        {/* Input Area */}
+        <form 
+          onSubmit={handleSend} 
+          style={{ 
+            padding: '16px 24px',
+            borderTop: '1px solid #e0e0e0',
+            display: 'flex', 
+            gap: '12px',
+            backgroundColor: '#fff',
+            alignItems: 'center',
           }}
         >
-          {sending ? 'Sending...' : 'Send'}
-        </button>
-      </form>
+          <input
+            type="text"
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            placeholder="Type a message..."
+            disabled={sending}
+            style={{
+              flex: 1,
+              padding: '12px 18px',
+              border: '1px solid #ddd',
+              borderRadius: '24px',
+              fontSize: '15px',
+              outline: 'none',
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = '#007bff';
+              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0, 123, 255, 0.1)';
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = '#ddd';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          />
+          <button
+            type="submit"
+            disabled={!messageText.trim() || sending}
+            className="btn-primary"
+            style={{
+              padding: '12px 24px',
+              borderRadius: '24px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: !messageText.trim() || sending ? 'not-allowed' : 'pointer',
+              opacity: !messageText.trim() || sending ? 0.5 : 1,
+              minWidth: '100px',
+            }}
+          >
+            {sending ? 'Sending...' : 'Send'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
