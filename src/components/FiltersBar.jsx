@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { getCategories } from '../api/endpoints';
+import { useState } from 'react';
+import { getAllCategories, findCategoryBySlug } from '../data/categories';
 
 const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
   // Create initial filters from initialValues (only used for initial state)
@@ -16,30 +16,12 @@ const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
   // If parent needs to reset filters, it should remount this component with a key
   const [filters, setFilters] = useState(getInitialFilters);
   
-  // Categories state
-  const [categories, setCategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-
-  // Fetch categories on mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setLoadingCategories(true);
-        const response = await getCategories();
-        const categoriesData = response.data?.categories || response.data?.data || response.data || [];
-        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-      } catch (err) {
-        console.error('Failed to load categories:', err);
-      } finally {
-        setLoadingCategories(false);
-      }
-    };
-    fetchCategories();
-  }, []);
+  // Use hardcoded categories
+  const categories = getAllCategories();
 
   // Get available subcategories for selected category
-  const selectedCategory = categories.find(cat => cat.slug === filters.category);
-  const availableSubcategories = selectedCategory?.subcategories || [];
+  const selectedCategory = findCategoryBySlug(filters.category);
+  const availableSubcategories = selectedCategory?.subs || [];
 
   const handleChange = (field, value) => {
     if (field === 'category') {
@@ -168,13 +150,12 @@ const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
           <select
             value={filters.category}
             onChange={(e) => handleChange('category', e.target.value)}
-            disabled={loadingCategories}
             style={{ width: '100%' }}
           >
             <option value="">All Categories</option>
             {categories.map((cat) => (
               <option key={cat.slug} value={cat.slug}>
-                {cat.name}
+                {cat.label}
               </option>
             ))}
           </select>
@@ -188,13 +169,13 @@ const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
             <select
               value={filters.subCategory}
               onChange={(e) => handleChange('subCategory', e.target.value)}
-              disabled={loadingCategories || !filters.category}
+              disabled={!filters.category}
               style={{ width: '100%' }}
             >
               <option value="">All Subcategories</option>
               {availableSubcategories.map((subCat) => (
                 <option key={subCat.slug} value={subCat.slug}>
-                  {subCat.name}
+                  {subCat.label}
                 </option>
               ))}
             </select>

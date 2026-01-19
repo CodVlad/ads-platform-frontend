@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createAd, getCategories } from '../api/endpoints';
+import { createAd } from '../api/endpoints';
 import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
+import { getAllCategories, findCategoryBySlug } from '../data/categories';
 
 const CreateAd = () => {
   const navigate = useNavigate();
@@ -16,11 +17,10 @@ const CreateAd = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const { success, error: showError } = useToast();
   
-  // Categories state
-  const [categories, setCategories] = useState([]);
+  // Categories state - use hardcoded categories
+  const categories = getAllCategories();
   const [categorySlug, setCategorySlug] = useState('');
   const [subCategorySlug, setSubCategorySlug] = useState('');
-  const [loadingCategories, setLoadingCategories] = useState(true);
 
   const validate = () => {
     const errors = {};
@@ -61,11 +61,7 @@ const CreateAd = () => {
     if (!categorySlug || !categorySlug.trim()) {
       errors.category = 'Category is required';
     }
-
-    // Subcategory: required
-    if (!subCategorySlug || !subCategorySlug.trim()) {
-      errors.subCategory = 'Subcategory is required';
-    }
+    // Subcategory is optional (not required)
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -89,13 +85,30 @@ const CreateAd = () => {
       formData.append('description', description.trim());
       formData.append('price', String(Number(price)));
       formData.append('currency', currency);
+      
+      // Map category fields - backend expects categorySlug/subCategorySlug
       formData.append('categorySlug', categorySlug);
-      formData.append('subCategorySlug', subCategorySlug);
+      if (subCategorySlug && subCategorySlug.trim()) {
+        formData.append('subCategorySlug', subCategorySlug);
+      }
       
       // Append all images
       Array.from(images).forEach((file) => {
         formData.append('images', file);
       });
+
+      // Dev log
+      if (import.meta.env.DEV) {
+        const payload = {
+          title: title.trim(),
+          description: description.trim(),
+          price: String(Number(price)),
+          currency,
+          categorySlug,
+          subCategorySlug: subCategorySlug || undefined,
+        };
+        console.log('[CREATE_AD] payload:', payload);
+      }
 
       await createAd(formData);
       
@@ -116,27 +129,14 @@ const CreateAd = () => {
     setValidationErrors((prev) => ({ ...prev, images: null }));
   };
 
-  // Fetch categories on mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setLoadingCategories(true);
-        const response = await getCategories();
-        const categoriesData = response.data?.categories || response.data?.data || response.data || [];
-        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-      } catch (err) {
-        const errorMessage = parseError(err);
-        showError(`Failed to load categories: ${errorMessage}`);
-      } finally {
-        setLoadingCategories(false);
-      }
-    };
-    fetchCategories();
-  }, [showError]);
-
   // Get available subcategories for selected category
-  const selectedCategory = categories.find(cat => cat.slug === categorySlug);
-  const availableSubcategories = selectedCategory?.subcategories || [];
+  const selectedCategory = findCategoryBySlug(categorySlug);
+  const availableSubcategories = selectedCategory?.subs || [];
+  
+  // Dev log
+  if (import.meta.env.DEV && categorySlug) {
+    console.log('[CATEGORY] selected:', selectedCategory);
+  }
 
   // Reset subcategory when category changes
   const handleCategoryChange = (e) => {
@@ -224,7 +224,7 @@ const CreateAd = () => {
             id="category"
             value={categorySlug}
             onChange={handleCategoryChange}
-            disabled={loading || loadingCategories}
+            disabled={loading}
             style={{
               width: '100%',
               padding: '8px',
@@ -236,7 +236,7 @@ const CreateAd = () => {
             <option value="">Select Category</option>
             {categories.map((cat) => (
               <option key={cat.slug} value={cat.slug}>
-                {cat.name}
+                {cat.label}
               </option>
             ))}
           </select>
@@ -250,13 +250,13 @@ const CreateAd = () => {
         {categorySlug && (
           <div style={{ marginBottom: '16px' }}>
             <label htmlFor="subCategory" style={{ display: 'block', marginBottom: '4px' }}>
-              Subcategory *
+              Subcategory (optional)
             </label>
             <select
               id="subCategory"
               value={subCategorySlug}
               onChange={handleSubCategoryChange}
-              disabled={loading || loadingCategories || !categorySlug}
+              disabled={loading || !categorySlug}
               style={{
                 width: '100%',
                 padding: '8px',
@@ -265,10 +265,10 @@ const CreateAd = () => {
                 borderRadius: '4px',
               }}
             >
-              <option value="">Select Subcategory</option>
+              <option value="">Select Subcategory (optional)</option>
               {availableSubcategories.map((subCat) => (
                 <option key={subCat.slug} value={subCat.slug}>
-                  {subCat.name}
+                  {subCat.label}
                 </option>
               ))}
             </select>

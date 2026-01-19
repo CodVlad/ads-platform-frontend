@@ -4,6 +4,7 @@ import { useAuth } from '../auth/useAuth.js';
 import { getAds } from '../api/endpoints';
 import AdCard from '../components/AdCard';
 import FiltersBar from '../components/FiltersBar';
+import { findCategoryBySlug, findSubcategoryBySlug } from '../data/categories';
 
 const Home = () => {
   const { user, logout } = useAuth();
@@ -58,7 +59,28 @@ const Home = () => {
       }
       
       // Ensure ads is always an array
-      setAds(Array.isArray(adsArray) ? adsArray : []);
+      let finalAds = Array.isArray(adsArray) ? adsArray : [];
+      
+      // Local filtering fallback if backend doesn't support category filter
+      if (filterParams.category) {
+        const categorySlug = filterParams.category;
+        finalAds = finalAds.filter((ad) => {
+          // Try multiple possible paths for category in ad object
+          const adCategory = ad.category?.slug || ad.category || ad.categorySlug;
+          return adCategory === categorySlug;
+        });
+      }
+      
+      // Apply subcategory filter if exists (local fallback)
+      if (filterParams.subCategory && finalAds.length > 0) {
+        const subCategorySlug = filterParams.subCategory;
+        finalAds = finalAds.filter((ad) => {
+          const adSubCategory = ad.subCategory?.slug || ad.subCategory || ad.subCategorySlug;
+          return adSubCategory === subCategorySlug;
+        });
+      }
+      
+      setAds(finalAds);
       
       // Extract pagination from response
       const paginationData = data?.pagination || {};
@@ -291,16 +313,25 @@ const Home = () => {
                     {pagination.page} / {pagination.pages}
                   </strong>
                 </div>
-                {(filters.category || filters.subCategory) && (
-                  <div>
-                    <span style={{ color: '#666', fontSize: '14px' }}>Filter: </span>
-                    <strong style={{ color: '#007bff', fontSize: '16px' }}>
-                      {filters.subCategory 
-                        ? `${filters.category} / ${filters.subCategory}`
-                        : filters.category}
-                    </strong>
-                  </div>
-                )}
+                {(filters.category || filters.subCategory) && (() => {
+                  const category = filters.category ? findCategoryBySlug(filters.category) : null;
+                  const subCategory = filters.subCategory && filters.category
+                    ? findSubcategoryBySlug(filters.category, filters.subCategory)
+                    : null;
+                  const categoryLabel = category?.label || filters.category || '';
+                  const subCategoryLabel = subCategory?.label || filters.subCategory || '';
+                  
+                  return (
+                    <div>
+                      <span style={{ color: '#666', fontSize: '14px' }}>Filter: </span>
+                      <strong style={{ color: '#007bff', fontSize: '16px' }}>
+                        {subCategoryLabel 
+                          ? `${categoryLabel} / ${subCategoryLabel}`
+                          : categoryLabel}
+                      </strong>
+                    </div>
+                  );
+                })()}
               </div>
               <button
                 onClick={() => fetchAds({}, pagination.page, pagination.limit)}
