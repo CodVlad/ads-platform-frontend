@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createAd } from '../api/endpoints';
 import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
-import { getAllCategories, findCategoryBySlug } from '../data/categories';
+import { getAllCategories, findCategoryBySlug, isValidCategorySlug, isValidSubCategorySlug } from '../data/categories';
 
 const CreateAd = () => {
   const navigate = useNavigate();
@@ -76,6 +76,19 @@ const CreateAd = () => {
       return;
     }
 
+    // Validate category and subcategory before submit
+    if (!isValidCategorySlug(categorySlug)) {
+      showError('Invalid category selected. Please select a valid category.');
+      setValidationErrors((prev) => ({ ...prev, category: 'Invalid category' }));
+      return;
+    }
+
+    if (subCategorySlug && subCategorySlug.trim() && !isValidSubCategorySlug(categorySlug, subCategorySlug)) {
+      showError('Invalid subcategory for the selected category. Please select a valid subcategory.');
+      setValidationErrors((prev) => ({ ...prev, subCategory: 'Invalid subcategory' }));
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -86,10 +99,15 @@ const CreateAd = () => {
       formData.append('price', String(Number(price)));
       formData.append('currency', currency);
       
-      // Map category fields - backend expects category and subcategory (not categorySlug/subCategorySlug)
-      formData.append('category', categorySlug);
+      // Map category fields - backend expects categorySlug and subCategorySlug
+      formData.append('categorySlug', categorySlug);
       if (subCategorySlug && subCategorySlug.trim()) {
-        formData.append('subcategory', subCategorySlug);
+        formData.append('subCategorySlug', subCategorySlug);
+      }
+
+      // Dev log
+      if (import.meta.env.DEV) {
+        console.log('[CREATE_AD] categorySlug:', categorySlug, 'subCategorySlug:', subCategorySlug);
       }
       
       // Append all images
@@ -97,18 +115,6 @@ const CreateAd = () => {
         formData.append('images', file);
       });
 
-      // Dev log
-      if (import.meta.env.DEV) {
-        const payload = {
-          title: title.trim(),
-          description: description.trim(),
-          price: String(Number(price)),
-          currency,
-          category: categorySlug,
-          subcategory: subCategorySlug || undefined,
-        };
-        console.log('[CREATE_AD] payload:', payload);
-      }
 
       await createAd(formData);
       
