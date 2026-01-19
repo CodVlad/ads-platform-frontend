@@ -86,10 +86,10 @@ const CreateAd = () => {
       formData.append('price', String(Number(price)));
       formData.append('currency', currency);
       
-      // Map category fields - backend expects categorySlug/subCategorySlug
-      formData.append('categorySlug', categorySlug);
+      // Map category fields - backend expects category and subcategory (not categorySlug/subCategorySlug)
+      formData.append('category', categorySlug);
       if (subCategorySlug && subCategorySlug.trim()) {
-        formData.append('subCategorySlug', subCategorySlug);
+        formData.append('subcategory', subCategorySlug);
       }
       
       // Append all images
@@ -104,8 +104,8 @@ const CreateAd = () => {
           description: description.trim(),
           price: String(Number(price)),
           currency,
-          categorySlug,
-          subCategorySlug: subCategorySlug || undefined,
+          category: categorySlug,
+          subcategory: subCategorySlug || undefined,
         };
         console.log('[CREATE_AD] payload:', payload);
       }
