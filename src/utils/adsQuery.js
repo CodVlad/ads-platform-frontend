@@ -67,6 +67,66 @@ export const buildAdsQuery = (filters = {}, page = 1, limit = 12) => {
     params.sort = 'newest'; // Default sort
   }
 
+  // Dynamic filters - Electronics
+  if (filters.brand && typeof filters.brand === 'string') {
+    const trimmed = filters.brand.trim();
+    if (trimmed.length > 0) {
+      params.brand = trimmed;
+    }
+  }
+  if (filters.condition && typeof filters.condition === 'string') {
+    const trimmed = filters.condition.trim();
+    if (trimmed.length > 0) {
+      params.condition = trimmed;
+    }
+  }
+
+  // Dynamic filters - Auto
+  if (filters.model && typeof filters.model === 'string') {
+    const trimmed = filters.model.trim();
+    if (trimmed.length > 0) {
+      params.model = trimmed;
+    }
+  }
+  if (filters.yearMin !== undefined && filters.yearMin !== null && filters.yearMin !== '') {
+    const yearMin = Number(filters.yearMin);
+    if (!isNaN(yearMin) && isFinite(yearMin) && yearMin >= 1900) {
+      params.yearMin = yearMin;
+    }
+  }
+  if (filters.yearMax !== undefined && filters.yearMax !== null && filters.yearMax !== '') {
+    const yearMax = Number(filters.yearMax);
+    if (!isNaN(yearMax) && isFinite(yearMax) && yearMax >= 1900) {
+      params.yearMax = yearMax;
+    }
+  }
+  if (filters.fuel && typeof filters.fuel === 'string') {
+    const trimmed = filters.fuel.trim();
+    if (trimmed.length > 0) {
+      params.fuel = trimmed;
+    }
+  }
+
+  // Dynamic filters - Real Estate
+  if (filters.rooms && typeof filters.rooms === 'string') {
+    const trimmed = filters.rooms.trim();
+    if (trimmed.length > 0) {
+      params.rooms = trimmed;
+    }
+  }
+  if (filters.areaMin !== undefined && filters.areaMin !== null && filters.areaMin !== '') {
+    const areaMin = Number(filters.areaMin);
+    if (!isNaN(areaMin) && isFinite(areaMin) && areaMin >= 0) {
+      params.areaMin = areaMin;
+    }
+  }
+  if (filters.areaMax !== undefined && filters.areaMax !== null && filters.areaMax !== '') {
+    const areaMax = Number(filters.areaMax);
+    if (!isNaN(areaMax) && isFinite(areaMax) && areaMax >= 0) {
+      params.areaMax = areaMax;
+    }
+  }
+
   return params;
 };
 

@@ -11,6 +11,16 @@ const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
     category: initialValues.category || '',
     subCategory: initialValues.subCategory || '',
     sort: initialValues.sort || 'newest',
+    // Dynamic filters based on category
+    brand: initialValues.brand || '',
+    condition: initialValues.condition || '',
+    model: initialValues.model || '',
+    yearMin: initialValues.yearMin || '',
+    yearMax: initialValues.yearMax || '',
+    fuel: initialValues.fuel || '',
+    rooms: initialValues.rooms || '',
+    areaMin: initialValues.areaMin || '',
+    areaMax: initialValues.areaMax || '',
   });
 
   // Use lazy initialization - state is only set once on mount
@@ -26,11 +36,21 @@ const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
 
   const handleChange = (field, value) => {
     if (field === 'category') {
-      // Reset subcategory when category changes
+      // Reset subcategory and dynamic filters when category changes
       setFilters((prev) => ({
         ...prev,
         category: value,
         subCategory: '',
+        // Clear dynamic filters
+        brand: '',
+        condition: '',
+        model: '',
+        yearMin: '',
+        yearMax: '',
+        fuel: '',
+        rooms: '',
+        areaMin: '',
+        areaMax: '',
       }));
     } else {
       setFilters((prev) => ({
@@ -69,6 +89,64 @@ const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
     if (filters.sort) {
       values.sort = filters.sort;
     }
+    
+    // Dynamic filters based on category
+    const categorySlug = filters.category;
+    
+    // Electronics filters
+    if (categorySlug === 'electronice-si-tehnica') {
+      if (filters.brand && filters.brand.trim()) {
+        values.brand = filters.brand.trim();
+      }
+      if (filters.condition && filters.condition.trim()) {
+        values.condition = filters.condition;
+      }
+    }
+    
+    // Auto filters
+    if (categorySlug === 'auto-si-transport') {
+      if (filters.brand && filters.brand.trim()) {
+        values.brand = filters.brand.trim();
+      }
+      if (filters.model && filters.model.trim()) {
+        values.model = filters.model.trim();
+      }
+      if (filters.yearMin) {
+        const yearMin = Number(filters.yearMin);
+        if (!isNaN(yearMin) && isFinite(yearMin)) {
+          values.yearMin = yearMin;
+        }
+      }
+      if (filters.yearMax) {
+        const yearMax = Number(filters.yearMax);
+        if (!isNaN(yearMax) && isFinite(yearMax)) {
+          values.yearMax = yearMax;
+        }
+      }
+      if (filters.fuel && filters.fuel.trim()) {
+        values.fuel = filters.fuel;
+      }
+    }
+    
+    // Real estate filters
+    if (categorySlug === 'imobiliare') {
+      if (filters.rooms && filters.rooms.trim()) {
+        values.rooms = filters.rooms;
+      }
+      if (filters.areaMin) {
+        const areaMin = Number(filters.areaMin);
+        if (!isNaN(areaMin) && isFinite(areaMin) && areaMin >= 0) {
+          values.areaMin = areaMin;
+        }
+      }
+      if (filters.areaMax) {
+        const areaMax = Number(filters.areaMax);
+        if (!isNaN(areaMax) && isFinite(areaMax) && areaMax >= 0) {
+          values.areaMax = areaMax;
+        }
+      }
+    }
+    
     onApply(values);
   };
 
@@ -81,6 +159,15 @@ const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
       category: '',
       subCategory: '',
       sort: 'newest',
+      brand: '',
+      condition: '',
+      model: '',
+      yearMin: '',
+      yearMax: '',
+      fuel: '',
+      rooms: '',
+      areaMin: '',
+      areaMax: '',
     });
     onReset();
   };
@@ -195,6 +282,162 @@ const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
               })}
             </select>
           </div>
+        )}
+
+        {/* Dynamic filters based on category */}
+        {filters.category === 'electronice-si-tehnica' && (
+          <>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                Brand
+              </label>
+              <input
+                type="text"
+                value={filters.brand}
+                onChange={(e) => handleChange('brand', e.target.value)}
+                placeholder="Brand"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                Condition
+              </label>
+              <select
+                value={filters.condition}
+                onChange={(e) => handleChange('condition', e.target.value)}
+                style={{ width: '100%' }}
+              >
+                <option value="">All Conditions</option>
+                <option value="new">New</option>
+                <option value="used">Used</option>
+              </select>
+            </div>
+          </>
+        )}
+
+        {filters.category === 'auto-si-transport' && (
+          <>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                Brand
+              </label>
+              <input
+                type="text"
+                value={filters.brand}
+                onChange={(e) => handleChange('brand', e.target.value)}
+                placeholder="Brand"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                Model
+              </label>
+              <input
+                type="text"
+                value={filters.model}
+                onChange={(e) => handleChange('model', e.target.value)}
+                placeholder="Model"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                Year Min
+              </label>
+              <input
+                type="number"
+                value={filters.yearMin}
+                onChange={(e) => handleChange('yearMin', e.target.value)}
+                placeholder="Min"
+                min="1900"
+                max="2100"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                Year Max
+              </label>
+              <input
+                type="number"
+                value={filters.yearMax}
+                onChange={(e) => handleChange('yearMax', e.target.value)}
+                placeholder="Max"
+                min="1900"
+                max="2100"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                Fuel
+              </label>
+              <select
+                value={filters.fuel}
+                onChange={(e) => handleChange('fuel', e.target.value)}
+                style={{ width: '100%' }}
+              >
+                <option value="">All Fuels</option>
+                <option value="petrol">Petrol</option>
+                <option value="diesel">Diesel</option>
+                <option value="electric">Electric</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="lpg">LPG</option>
+              </select>
+            </div>
+          </>
+        )}
+
+        {filters.category === 'imobiliare' && (
+          <>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                Rooms
+              </label>
+              <select
+                value={filters.rooms}
+                onChange={(e) => handleChange('rooms', e.target.value)}
+                style={{ width: '100%' }}
+              >
+                <option value="">All Rooms</option>
+                <option value="1">1 Room</option>
+                <option value="2">2 Rooms</option>
+                <option value="3">3 Rooms</option>
+                <option value="4">4 Rooms</option>
+                <option value="5+">5+ Rooms</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                Area Min (m²)
+              </label>
+              <input
+                type="number"
+                value={filters.areaMin}
+                onChange={(e) => handleChange('areaMin', e.target.value)}
+                placeholder="Min"
+                min="0"
+                step="1"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                Area Max (m²)
+              </label>
+              <input
+                type="number"
+                value={filters.areaMax}
+                onChange={(e) => handleChange('areaMax', e.target.value)}
+                placeholder="Max"
+                min="0"
+                step="1"
+                style={{ width: '100%' }}
+              />
+            </div>
+          </>
         )}
 
         <div>

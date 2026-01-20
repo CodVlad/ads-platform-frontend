@@ -23,6 +23,16 @@ const Home = () => {
       category: params.categorySlug || '',
       subCategory: params.subCategorySlug || '',
       sort: params.sort || 'newest',
+      // Dynamic filters
+      brand: params.brand || '',
+      condition: params.condition || '',
+      model: params.model || '',
+      yearMin: params.yearMin || '',
+      yearMax: params.yearMax || '',
+      fuel: params.fuel || '',
+      rooms: params.rooms || '',
+      areaMin: params.areaMin || '',
+      areaMax: params.areaMax || '',
     };
   };
 
@@ -116,19 +126,60 @@ const Home = () => {
     }
   }, []);
 
-  // Load initial data from URL params on mount
+  // Fetch ads whenever URL params change (source of truth)
   useEffect(() => {
-    const params = buildAdsQuery({
-      search: filters.q,
-      categorySlug: filters.category,
-      subCategorySlug: filters.subCategory,
-      minPrice: filters.minPrice,
-      maxPrice: filters.maxPrice,
-      currency: filters.currency,
-      sort: filters.sort,
-    }, pagination.page, pagination.limit);
-    fetchAds(params, pagination.page, pagination.limit);
-  }, []); // Only run on mount
+    const params = Object.fromEntries(searchParams);
+    
+    // Extract page and limit from URL or use defaults
+    const page = params.page ? parseInt(params.page, 10) : 1;
+    const limit = params.limit ? parseInt(params.limit, 10) : 12;
+    
+    // Build filter params from URL
+    const filterParams = {
+      search: params.search || '',
+      categorySlug: params.categorySlug || '',
+      subCategorySlug: params.subCategorySlug || '',
+      minPrice: params.minPrice || '',
+      maxPrice: params.maxPrice || '',
+      currency: params.currency || '',
+      sort: params.sort || 'newest',
+      // Dynamic filters
+      brand: params.brand || '',
+      condition: params.condition || '',
+      model: params.model || '',
+      yearMin: params.yearMin || '',
+      yearMax: params.yearMax || '',
+      fuel: params.fuel || '',
+      rooms: params.rooms || '',
+      areaMin: params.areaMin || '',
+      areaMax: params.areaMax || '',
+    };
+    
+    // Update local filters state to match URL
+    setFilters({
+      q: filterParams.search,
+      minPrice: filterParams.minPrice,
+      maxPrice: filterParams.maxPrice,
+      currency: filterParams.currency,
+      category: filterParams.categorySlug,
+      subCategory: filterParams.subCategorySlug,
+      sort: filterParams.sort,
+      brand: filterParams.brand,
+      condition: filterParams.condition,
+      model: filterParams.model,
+      yearMin: filterParams.yearMin,
+      yearMax: filterParams.yearMax,
+      fuel: filterParams.fuel,
+      rooms: filterParams.rooms,
+      areaMin: filterParams.areaMin,
+      areaMax: filterParams.areaMax,
+    });
+    
+    // Fetch with params from URL
+    const queryParams = buildAdsQuery(filterParams, page, limit);
+    fetchAds(queryParams, page, limit);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]); // Only depend on searchParams, fetchAds is stable
 
   const handleApplyFilters = (values) => {
     // Clear previous error
@@ -142,83 +193,49 @@ const Home = () => {
     if (min !== undefined && max !== undefined && !isNaN(min) && !isNaN(max)) {
       if (min > max) {
         setError('Minimum price cannot be greater than maximum price');
-        return; // Do NOT fetch if validation fails
+        return; // Do NOT update URL if validation fails
       }
     }
 
-    // Update filters state
-    const newFilters = {
-      q: values.search || values.q || '',
+    // Build query params using helper (page=1 on Apply)
+    const filterParams = {
+      search: values.search || values.q || '',
+      categorySlug: values.categorySlug || '',
+      subCategorySlug: values.subCategorySlug || '',
       minPrice: values.minPrice || '',
       maxPrice: values.maxPrice || '',
       currency: values.currency || '',
-      category: values.categorySlug || '',
-      subCategory: values.subCategorySlug || '',
       sort: values.sort || 'newest',
     };
-    setFilters(newFilters);
+    
+    const params = buildAdsQuery(filterParams, 1, pagination.limit);
 
-    // Build query params using helper
-    const params = buildAdsQuery({
-      search: newFilters.q,
-      categorySlug: newFilters.category,
-      subCategorySlug: newFilters.subCategory,
-      minPrice: newFilters.minPrice,
-      maxPrice: newFilters.maxPrice,
-      currency: newFilters.currency,
-      sort: newFilters.sort,
-    }, 1, pagination.limit);
-
-    // Sync to URL
+    // Update URL (this will trigger useEffect to fetch)
     const urlParams = new URLSearchParams();
     Object.keys(params).forEach(key => {
       if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-        urlParams.set(key, params[key]);
+        urlParams.set(key, String(params[key]));
       }
     });
     setSearchParams(urlParams);
-
-    // Fetch with new filters
-    fetchAds(params, 1, pagination.limit);
+    // Note: fetchAds will be triggered by useEffect watching searchParams
   };
 
   const handleResetFilters = () => {
-    // Clear filters
-    const emptyFilters = {
-      q: '',
-      minPrice: '',
-      maxPrice: '',
-      currency: '',
-      category: '',
-      subCategory: '',
-      sort: 'newest',
-    };
-    setFilters(emptyFilters);
-
     // Clear any validation errors
     setError(null);
 
-    // Clear URL params
+    // Clear URL params completely (this will trigger useEffect to fetch with defaults)
     setSearchParams({});
-
-    // Reset page to 1 and refetch all ads (no filters, default sort)
-    const params = buildAdsQuery({ sort: 'newest' }, 1, pagination.limit);
-    fetchAds(params, 1, pagination.limit);
+    // Note: fetchAds will be triggered by useEffect watching searchParams
   };
 
   const handlePageChange = (newPage) => {
-    // Build query params using helper function with current filters
-    const params = buildAdsQuery({
-      search: filters.q,
-      categorySlug: filters.category,
-      subCategorySlug: filters.subCategory,
-      minPrice: filters.minPrice,
-      maxPrice: filters.maxPrice,
-      currency: filters.currency,
-      sort: filters.sort,
-    }, newPage, pagination.limit);
-    
-    fetchAds(params, newPage, pagination.limit);
+    // Update only page in URL, keep all other params
+    const currentParams = new URLSearchParams(searchParams);
+    currentParams.set('page', String(newPage));
+    setSearchParams(currentParams);
+    // Note: fetchAds will be triggered by useEffect watching searchParams
   };
 
   return (
@@ -280,6 +297,7 @@ const Home = () => {
         {!loading && !error && (
           <>
             <FiltersBar
+              key={JSON.stringify(filters)} // Force remount when filters change from URL
               initialValues={filters}
               onApply={handleApplyFilters}
               onReset={handleResetFilters}
