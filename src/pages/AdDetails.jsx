@@ -5,12 +5,13 @@ import { startChat } from '../api/chat';
 import { useAuth } from '../auth/useAuth.js';
 import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
+import { buildAdShareUrl } from '../utils/shareUrl';
 
 const AdDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { error: showError } = useToast();
+  const { error: showError, success: showSuccess } = useToast();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [ad, setAd] = useState(null);
@@ -89,6 +90,44 @@ const AdDetails = () => {
       showError(errorMessage);
     } finally {
       setContacting(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!ad || !id) {
+      showError('Unable to share ad. Missing information.');
+      return;
+    }
+
+    const shareUrl = buildAdShareUrl(id);
+    if (!shareUrl) {
+      showError('Unable to generate share URL.');
+      return;
+    }
+
+    try {
+      // Try to copy to clipboard
+      await navigator.clipboard.writeText(shareUrl);
+      showSuccess('Link copied to clipboard');
+    } catch (err) {
+      // Fallback: show prompt with URL
+      const userConfirmed = window.confirm(
+        `Share URL:\n\n${shareUrl}\n\nClick OK to copy manually.`
+      );
+      if (userConfirmed) {
+        // Try to select the text in a temporary input
+        const input = document.createElement('input');
+        input.value = shareUrl;
+        document.body.appendChild(input);
+        input.select();
+        try {
+          document.execCommand('copy');
+          showSuccess('Link copied');
+        } catch (e) {
+          showError('Please copy the URL manually');
+        }
+        document.body.removeChild(input);
+      }
     }
   };
 
@@ -288,20 +327,34 @@ const AdDetails = () => {
                     </span>
                   </div>
                 )}
-                <button
-                  onClick={handleContactSeller}
-                  disabled={contacting}
-                  className="btn-primary"
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    opacity: contacting ? 0.6 : 1,
-                  }}
-                >
-                  {contacting ? 'Starting conversation...' : '💬 Contact Seller'}
-                </button>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button
+                    onClick={handleContactSeller}
+                    disabled={contacting}
+                    className="btn-primary"
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      opacity: contacting ? 0.6 : 1,
+                    }}
+                  >
+                    {contacting ? 'Starting conversation...' : '💬 Contact Seller'}
+                  </button>
+                  <button
+                    onClick={handleShare}
+                    className="btn-secondary"
+                    style={{
+                      padding: '12px 20px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                    }}
+                    title="Share this ad"
+                  >
+                    📤 Share
+                  </button>
+                </div>
               </div>
             )}
 

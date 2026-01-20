@@ -4,6 +4,7 @@ import { createAd } from '../api/endpoints';
 import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
 import useCategories from '../hooks/useCategories';
+import ImageUploader from '../components/ImageUploader';
 
 const CreateAd = () => {
   const navigate = useNavigate();
@@ -145,9 +146,8 @@ const CreateAd = () => {
     }
   };
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    setImages(files);
+  const handleImagesChange = (newImages) => {
+    setImages(newImages);
     setValidationErrors((prev) => ({ ...prev, images: null }));
   };
 
@@ -370,31 +370,16 @@ const CreateAd = () => {
         </div>
 
         <div style={{ marginBottom: '16px' }}>
-          <label htmlFor="images" style={{ display: 'block', marginBottom: '4px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
             Images (at least 1) *
           </label>
-          <input
-            type="file"
-            id="images"
-            accept="image/*"
-            multiple
-            onChange={handleImageChange}
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '8px',
-              fontSize: '16px',
-              border: validationErrors.images ? '1px solid red' : '1px solid #ddd',
-              borderRadius: '4px',
-            }}
+          <ImageUploader
+            value={images}
+            onChange={handleImagesChange}
+            maxFiles={10}
           />
-          {images.length > 0 && (
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-              {images.length} image(s) selected
-            </div>
-          )}
           {validationErrors.images && (
-            <div style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>
+            <div style={{ color: 'red', fontSize: '12px', marginTop: '8px' }}>
               {validationErrors.images}
             </div>
           )}
