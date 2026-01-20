@@ -1,16 +1,11 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth.js';
 import { useChatNotifications } from '../hooks/useChatNotifications.js';
+import ProfileMenu from './ProfileMenu';
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { unreadCount } = useChatNotifications();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
 
   return (
     <nav style={{
@@ -133,43 +128,12 @@ const Navbar = () => {
                 paddingLeft: '16px',
                 borderLeft: '1px solid #e0e0e0',
               }}>
-                <span style={{ fontSize: '14px', color: '#666' }}>
-                  {user.name || user.email}
-                </span>
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c82333'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#dc3545'}
-                >
-                  Logout
-                </button>
+                <ProfileMenu />
               </div>
             </>
           ) : (
             <>
-              <Link
-                to="/login"
-                style={{
-                  padding: '10px 20px',
-                  color: '#007bff',
-                  textDecoration: 'none',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                }}
-              >
-                Login
-              </Link>
+              <ProfileMenu />
               <Link
                 to="/register"
                 style={{
