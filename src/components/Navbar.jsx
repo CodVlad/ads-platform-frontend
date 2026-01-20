@@ -1,11 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth.js';
-import { useChatNotifications } from '../hooks/useChatNotifications.js';
 import ProfileMenu from './ProfileMenu';
 
 const Navbar = () => {
   const { user } = useAuth();
-  const { unreadCount } = useChatNotifications();
 
   return (
     <nav style={{
@@ -45,92 +43,7 @@ const Navbar = () => {
           gap: '16px',
         }}>
           {user ? (
-            <>
-              <Link
-                to="/create"
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  transition: 'background-color 0.2s',
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}
-              >
-                ➕ Create Ad
-              </Link>
-              <Link
-                to="/my-ads"
-                style={{
-                  padding: '10px 20px',
-                  color: '#333',
-                  textDecoration: 'none',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                }}
-              >
-                📋 My Ads
-              </Link>
-              <Link
-                to="/favorites"
-                style={{
-                  padding: '10px 20px',
-                  color: '#333',
-                  textDecoration: 'none',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                }}
-              >
-                ❤️ Favorites
-              </Link>
-              <Link
-                to="/chats"
-                style={{
-                  padding: '10px 20px',
-                  color: '#333',
-                  textDecoration: 'none',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  position: 'relative',
-                }}
-              >
-                💬 Messages
-                {unreadCount > 0 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '6px',
-                    right: '8px',
-                    minWidth: '18px',
-                    height: '18px',
-                    padding: '0 4px',
-                    borderRadius: '9px',
-                    fontSize: '11px',
-                    fontWeight: '600',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    lineHeight: '1',
-                  }}>
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </Link>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                paddingLeft: '16px',
-                borderLeft: '1px solid #e0e0e0',
-              }}>
-                <ProfileMenu />
-              </div>
-            </>
+            <ProfileMenu />
           ) : (
             <>
               <ProfileMenu />
