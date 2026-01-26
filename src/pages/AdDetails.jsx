@@ -71,27 +71,27 @@ const AdDetails = () => {
       return;
     }
 
-    // Use adId from route param `id` as source of truth
-    const adIdStr = String(id || '').trim();
+    // Compute adIdStr from ad object
+    const adIdStr = String(ad?._id || ad?.id || '').trim();
 
-    // Fix receiverId derivation to support BOTH populated objects and raw strings
+    // Compute receiverIdStr from ad owner fields
     const receiverId =
       ad?.user?._id || ad?.user || ad?.userId ||
       ad?.owner?._id || ad?.owner || ad?.ownerId ||
       ad?.createdBy?._id || ad?.createdBy || ad?.createdById ||
       ad?.seller?._id || ad?.seller || ad?.sellerId;
 
-    // Normalize strings and block "null"/"undefined"
+    // Normalize to string
     const receiverIdStr = String(receiverId || '').trim();
 
-    // Block if adId is missing or "null"/"undefined"
-    if (!adIdStr || adIdStr === 'null' || adIdStr === 'undefined') {
+    // Block if adIdStr is "" OR "null" OR "undefined"
+    if (adIdStr === '' || adIdStr === 'null' || adIdStr === 'undefined') {
       showError('Ad id missing. Cannot start chat.');
       return;
     }
 
-    // Block if receiverId is missing or "null"/"undefined"
-    if (!receiverIdStr || receiverIdStr === 'null' || receiverIdStr === 'undefined') {
+    // Block if receiverIdStr is "" OR "null" OR "undefined"
+    if (receiverIdStr === '' || receiverIdStr === 'null' || receiverIdStr === 'undefined') {
       showError('Seller id missing. Cannot start chat.');
       return;
     }
@@ -103,9 +103,9 @@ const AdDetails = () => {
       return;
     }
 
-    // Add dev-only debug log before request
+    // Add DEV log right before request
     if (import.meta.env.DEV) {
-      console.log('[CHAT_START] sending', { receiverId: receiverIdStr, adId: adIdStr });
+      console.log('[CHAT_START] payload', { receiverId: receiverIdStr, adId: adIdStr });
     }
 
     setContacting(true);
@@ -370,7 +370,7 @@ const AdDetails = () => {
                     onClick={handleContactSeller}
                     disabled={(() => {
                       // Update button disabled condition to match the same logic
-                      const adIdStr = String(id || '').trim();
+                      const adIdStr = String(ad?._id || ad?.id || '').trim();
                       const receiverId =
                         ad?.user?._id || ad?.user || ad?.userId ||
                         ad?.owner?._id || ad?.owner || ad?.ownerId ||
@@ -378,8 +378,8 @@ const AdDetails = () => {
                         ad?.seller?._id || ad?.seller || ad?.sellerId;
                       const receiverIdStr = String(receiverId || '').trim();
                       const currentUserId = user ? String(user._id || user.id).trim() : '';
-                      const isMissing = !adIdStr || adIdStr === 'null' || adIdStr === 'undefined' ||
-                                       !receiverIdStr || receiverIdStr === 'null' || receiverIdStr === 'undefined';
+                      const isMissing = adIdStr === '' || adIdStr === 'null' || adIdStr === 'undefined' ||
+                                       receiverIdStr === '' || receiverIdStr === 'null' || receiverIdStr === 'undefined';
                       const isSelf = receiverIdStr === currentUserId;
                       return contacting || isMissing || isSelf;
                     })()}

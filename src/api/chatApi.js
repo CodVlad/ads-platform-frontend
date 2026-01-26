@@ -37,17 +37,15 @@ export const startChat = async ({ receiverId, adId }) => {
   const receiverIdStr = String(receiverId || '').trim();
   const adIdStr = String(adId || '').trim();
 
-  // Improve validation to also block literal strings "null"/"undefined"
-  if (['', 'null', 'undefined'].includes(receiverIdStr)) {
-    const errorMsg = 'Missing receiverId/adId';
+  // Before axios call, reject if receiverIdStr/adIdStr is "null" or "undefined" (string)
+  if (receiverIdStr === 'null' || receiverIdStr === 'undefined' || receiverIdStr === '') {
     console.error('[CHAT_API] Validation failed: receiverId is missing or invalid', { receiverId, receiverIdStr, adId });
-    throw new Error(errorMsg);
+    throw new Error('Missing receiverId/adId');
   }
 
-  if (['', 'null', 'undefined'].includes(adIdStr)) {
-    const errorMsg = 'Missing receiverId/adId';
+  if (adIdStr === 'null' || adIdStr === 'undefined' || adIdStr === '') {
     console.error('[CHAT_API] Validation failed: adId is missing or invalid', { receiverId, adId, adIdStr });
-    throw new Error(errorMsg);
+    throw new Error('Missing receiverId/adId');
   }
 
   // Verify token exists
@@ -61,9 +59,8 @@ export const startChat = async ({ receiverId, adId }) => {
   // Prepare request
   const API_URL = getApiUrl();
   const url = `${API_URL}/chats/start`;
-  const method = 'POST';
   
-  // Send request body exactly: { receiverId, adId }
+  // Keep payload exactly { receiverId, adId }
   const payload = {
     receiverId: receiverIdStr,
     adId: adIdStr
@@ -77,7 +74,6 @@ export const startChat = async ({ receiverId, adId }) => {
   // Log request payload before sending
   console.log('[CHAT_API] Request payload:', payload);
   console.log('[CHAT_API] Request URL:', url);
-  console.log('[CHAT_API] Request method:', method);
   console.log('[CHAT_API] Has token:', !!token);
 
   try {
