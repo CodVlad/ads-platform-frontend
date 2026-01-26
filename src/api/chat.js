@@ -32,13 +32,21 @@ let unreadCountCache = null;
 let unreadCountCacheTime = 0;
 const UNREAD_COUNT_CACHE_MS = 30000; // 30 seconds
 
-export const getUnreadCount = () => {
+export const getUnreadCount = async () => {
   const token = localStorage.getItem('token');
   if (!token) {
-    // Return a promise that resolves to 0 if no token
-    return Promise.resolve({ data: { count: 0 } });
+    return { success: true, count: 0 };
   }
-  return api.get('/chats/unread-count');
+  
+  try {
+    const response = await api.get('/chats/unread-count');
+    // Handle different response formats
+    const count = response.data?.count || response.data?.data?.count || 0;
+    return { success: true, count };
+  } catch (error) {
+    // Return 0 on error to avoid breaking UI
+    return { success: true, count: 0 };
+  }
 };
 
 /**

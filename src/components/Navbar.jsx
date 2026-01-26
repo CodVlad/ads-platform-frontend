@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth.js';
 import ProfileMenu from './ProfileMenu';
+import { getUnreadCount } from '../api/chat';
 
 const Navbar = () => {
   const { user } = useAuth();
@@ -9,6 +10,7 @@ const Navbar = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [searchValue, setSearchValue] = useState('');
+  const [unread, setUnread] = useState(0);
 
   // Sync search input with URL param (for back/forward navigation)
   useEffect(() => {
@@ -33,6 +35,49 @@ const Navbar = () => {
       navigate('/');
     }
   };
+
+  // Fetch unread count on mount and poll every 25s
+  useEffect(() => {
+    let alive = true;
+
+    const load = async () => {
+      try {
+        const data = await getUnreadCount();
+        if (!alive) return;
+        const count = Number(data?.count || 0);
+        setUnread(Number.isFinite(count) ? count : 0);
+      } catch (e) {
+        // Silent fail, do not spam toast
+      }
+    };
+
+    if (user) {
+      load();
+      const t = setInterval(load, 25000);
+      return () => { 
+        alive = false; 
+        clearInterval(t); 
+      };
+    } else {
+      setUnread(0);
+    }
+  }, [user]);
+
+  // Refresh when navigating to /chats (messages might have been read)
+  useEffect(() => {
+    if (user && (location.pathname === '/chats' || location.hash === '#/chats')) {
+      const load = async () => {
+        try {
+          const data = await getUnreadCount();
+          const count = Number(data?.count || 0);
+          setUnread(Number.isFinite(count) ? count : 0);
+        } catch (e) {
+          // Silent fail
+        }
+      };
+      load();
+    }
+  }, [location.pathname, location.hash, user]);
 
   return (
     <nav style={{
@@ -138,6 +183,43 @@ const Navbar = () => {
           alignItems: 'center',
           gap: '16px',
         }}>
+          {user && (
+            <Link
+              to="/chats"
+              style={{
+                position: 'relative',
+                padding: '8px',
+                color: '#333',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '6px',
+                transition: 'background-color 0.2s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              aria-label="Messages"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              {unread > 0 && (
+                <span className="nav-badge">
+                  {unread > 99 ? '99+' : String(unread)}
+                </span>
+              )}
+            </Link>
+          )}
           {user ? (
             <ProfileMenu />
           ) : (
