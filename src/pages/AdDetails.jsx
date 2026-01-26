@@ -6,7 +6,6 @@ import { useAuth } from '../auth/useAuth.js';
 import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
 import { buildAdShareUrl } from '../utils/shareUrl';
-import { getAdId, getReceiverIdFromAd } from '../utils/chatIds';
 
 const AdDetails = () => {
   const { id } = useParams();
@@ -72,44 +71,55 @@ const AdDetails = () => {
       return;
     }
 
-    // Determine adId via (ad._id || ad.id) using helper
-    const adId = getAdId(ad) || id; // Fallback to route param if ad not loaded
+    // Derive adId ONLY from: ad?._id || ad?.id
+    const adId = ad?._id || ad?.id;
 
-    // Determine receiverId by checking fields in order using helper
-    const receiverId = getReceiverIdFromAd(ad);
+    // Derive receiverId from ad owner (NOT current user):
+    // check in order: ad.user?._id, ad.userId, ad.owner?._id, ad.ownerId, ad.createdBy?._id, ad.createdById, ad.seller?._id, ad.sellerId
+    const receiverId = 
+      ad?.user?._id ||
+      ad?.userId ||
+      ad?.owner?._id ||
+      ad?.ownerId ||
+      ad?.createdBy?._id ||
+      ad?.createdById ||
+      ad?.seller?._id ||
+      ad?.sellerId;
 
-    // Debug logs only in development
-    if (import.meta.env.DEV) {
-      console.log('[CHAT_START] adId:', adId, 'receiverId:', receiverId);
-    }
+    // Normalize to strings
+    const adIdStr = adId ? String(adId).trim() : '';
+    const receiverIdStr = receiverId ? String(receiverId).trim() : '';
 
-    // Prevent API call if receiverId/adId missing; show toast error instead
-    if (!adId) {
-      console.error('[CHAT_START] Missing adId - request blocked', { ad, id });
-      showError('Ad ID missing or invalid. Cannot start chat.');
+    // If adId missing -> show toast "Ad id missing. Cannot start chat." and DO NOT call API
+    if (!adIdStr || adIdStr === 'null' || adIdStr === 'undefined') {
+      showError('Ad id missing. Cannot start chat.');
       return;
     }
 
-    if (!receiverId) {
-      console.error('[CHAT_START] Missing receiverId - request blocked', { ad });
-      showError('Seller information missing. Cannot start chat.');
+    // If receiverId missing -> toast "Seller id missing. Cannot start chat."
+    if (!receiverIdStr || receiverIdStr === 'null' || receiverIdStr === 'undefined') {
+      showError('Seller id missing. Cannot start chat.');
       return;
     }
 
-    // IMPORTANT: if receiverId equals logged in user id (user._id), block and show toast
+    // If receiverId === currentUserId -> toast "You can't message yourself" and stop
     const currentUserId = String(user._id || user.id).trim();
-    if (receiverId === currentUserId) {
+    if (receiverIdStr === currentUserId) {
       showError("You can't message yourself");
       return;
+    }
+
+    // Add dev-only debug log before request
+    if (import.meta.env.DEV) {
+      console.log('[CHAT_START] sending', { receiverId: receiverIdStr, adId: adIdStr });
     }
 
     setContacting(true);
     try {
       // Call startChat with { receiverId, adId }
-      const response = await startChat({ receiverId, adId });
+      const response = await startChat({ receiverId: receiverIdStr, adId: adIdStr });
       
       // After successful start, backend returns chat id. Navigate to `/chats/${chatId}`
-      // Make sure it works with HashRouter by using navigate(`/chats/${id}`)
       const chatId = response?.chat?._id || response?.data?._id || response?._id;
       if (chatId) {
         navigate(`/chats/${chatId}`);

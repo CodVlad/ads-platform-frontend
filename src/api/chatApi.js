@@ -69,9 +69,9 @@ export const startChat = async ({ receiverId, adId }) => {
     adId: adIdStr
   };
 
-  // Debug logs only in development
+  // Add dev-only debug log before request
   if (import.meta.env.DEV) {
-    console.log('[CHAT_START] adId:', adIdStr, 'receiverId:', receiverIdStr);
+    console.log('[CHAT_START] sending', { receiverId: receiverIdStr, adId: adIdStr });
   }
 
   // Log request payload before sending
