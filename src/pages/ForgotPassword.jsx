@@ -37,11 +37,11 @@ const ForgotPassword = () => {
 
       // If status === 404 OR type === "EMAIL_NOT_FOUND"
       if (status === 404 || type === "EMAIL_NOT_FOUND") {
-        // Show error message (use API message if available, otherwise default)
-        const msg = msgFromApi || "Cont cu emailul dat nu există";
-        setError(msg);
-        showError(msg);
-        // STOP (return) so it does NOT show the generic success message
+        // Show message exactly from response.data.message
+        // Do not show the generic "If account exists..." message
+        // Do not set success=true when request fails
+        setError(msgFromApi);
+        showError(msgFromApi);
         return;
       }
 
