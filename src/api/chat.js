@@ -1,6 +1,16 @@
 import api from './client';
 
 export const startChat = (adId, receiverId) => {
+  // Validate adId: must be a valid non-empty string (Mongo ObjectId format or at least non-empty)
+  if (!adId || typeof adId !== 'string' || adId.trim() === '') {
+    return Promise.reject(new Error('Ad ID is required and must be a valid string'));
+  }
+
+  // Validate receiverId: must be a valid non-empty string
+  if (!receiverId || typeof receiverId !== 'string' || receiverId.trim() === '') {
+    return Promise.reject(new Error('Receiver ID is required and must be a valid string'));
+  }
+
   return api.post('/chats/start', { adId, receiverId });
 };
 

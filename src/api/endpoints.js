@@ -32,10 +32,6 @@ export const createAd = (formData) => {
 
 export const getMyAds = () => api.get("/ads/my");
 
-export const getMyAdsAlt = () => {
-  return api.get('/ads/me');
-};
-
 export const updateAdStatus = (id, status) =>
   api.patch(`/ads/${id}/status`, { status });
 

@@ -56,7 +56,7 @@ const Chats = () => {
         day: 'numeric',
         year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
       });
-    } catch (e) {
+    } catch {
       return dateString;
     }
   };

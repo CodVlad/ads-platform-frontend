@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../auth/useAuth.js';
 import { getAds } from '../api/endpoints';
 import AdCard from '../components/AdCard';
 import FiltersBar from '../components/FiltersBar';
@@ -8,7 +7,6 @@ import useCategories from '../hooks/useCategories';
 import { buildAdsQuery } from '../utils/adsQuery';
 
 const Home = () => {
-  const { user, logout } = useAuth();
   const { categories } = useCategories(); // For getting category labels
   const [searchParams, setSearchParams] = useSearchParams();
   

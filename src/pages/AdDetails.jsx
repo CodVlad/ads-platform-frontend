@@ -70,9 +70,29 @@ const AdDetails = () => {
       return;
     }
 
+    // Validate ad is loaded and has valid _id
+    if (!ad || !ad._id) {
+      showError('Ad is not loaded yet. Please refresh.');
+      return;
+    }
+
+    // Validate adId from route params
+    if (!id || typeof id !== 'string' || id.trim() === '') {
+      showError('Ad is not loaded yet. Please refresh.');
+      return;
+    }
+
     const sellerUserId = ad?.user?._id || ad?.owner?._id;
-    if (!sellerUserId || !id) {
-      showError('Unable to contact seller. Missing information.');
+    
+    // Validate receiverId exists and is not the current user
+    if (!sellerUserId || typeof sellerUserId !== 'string' || sellerUserId.trim() === '') {
+      showError('Unable to contact seller. Missing seller information.');
+      return;
+    }
+
+    // Prevent user from messaging themselves
+    if (sellerUserId === user._id) {
+      showError('You cannot message yourself.');
       return;
     }
 
@@ -330,14 +350,15 @@ const AdDetails = () => {
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <button
                     onClick={handleContactSeller}
-                    disabled={contacting}
+                    disabled={contacting || !ad || !ad._id || !id}
                     className="btn-primary"
                     style={{
                       flex: 1,
                       padding: '12px',
                       fontSize: '16px',
                       fontWeight: '600',
-                      opacity: contacting ? 0.6 : 1,
+                      opacity: (contacting || !ad || !ad._id || !id) ? 0.6 : 1,
+                      cursor: (contacting || !ad || !ad._id || !id) ? 'not-allowed' : 'pointer',
                     }}
                   >
                     {contacting ? 'Starting conversation...' : '💬 Contact Seller'}
