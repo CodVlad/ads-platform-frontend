@@ -4,6 +4,7 @@ import { HashRouter } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import { FavoritesProvider } from './context/FavoritesContext.jsx'
 import { ChatNotificationsProvider } from './context/ChatNotificationsContext.jsx'
+import { UnreadProvider } from './context/UnreadContext.jsx'
 import { ToastProvider } from './components/ToastProvider'
 import { ApiStatusProvider } from './components/ApiStatusProvider'
 import './index.css'
@@ -15,11 +16,13 @@ createRoot(document.getElementById('root')).render(
       <ApiStatusProvider>
         <ToastProvider>
           <AuthProvider>
-            <ChatNotificationsProvider>
-              <FavoritesProvider>
-                <App />
-              </FavoritesProvider>
-            </ChatNotificationsProvider>
+            <UnreadProvider>
+              <ChatNotificationsProvider>
+                <FavoritesProvider>
+                  <App />
+                </FavoritesProvider>
+              </ChatNotificationsProvider>
+            </UnreadProvider>
           </AuthProvider>
         </ToastProvider>
       </ApiStatusProvider>

@@ -1,15 +1,73 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth.js';
-import { useUnreadCount } from '../hooks/useUnreadCount.js';
+import { useUnread } from '../context/UnreadContext.jsx';
+import { getChats } from '../api/chat';
 
 const ProfileMenu = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { badgeText } = useUnreadCount();
+  const location = useLocation();
+  const { totalUnread, setTotalUnread } = useUnread();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
+  const pollIntervalRef = useRef(null);
+
+  // Format badge text
+  const badgeText = totalUnread > 99 ? '99+' : String(totalUnread);
+  const showBadge = totalUnread > 0;
+
+  // Polling: fetch unread count every 25 seconds
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (!user) {
+        setTotalUnread(0);
+        return;
+      }
+
+      try {
+        // Fetch chats to get totalUnread
+        const response = await getChats();
+        const totalUnreadCount = response.data?.totalUnread || 0;
+        setTotalUnread(totalUnreadCount);
+      } catch {
+        // Silently fail on polling errors
+      }
+    };
+
+    if (user) {
+      // Initial fetch
+      fetchUnreadCount();
+
+      // Poll every 25 seconds
+      pollIntervalRef.current = setInterval(() => {
+        fetchUnreadCount();
+      }, 25000);
+    }
+
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+  }, [user, setTotalUnread]);
+
+  // Refresh when navigating to /chats
+  useEffect(() => {
+    if (location.pathname === '/chats' || location.hash === '#/chats') {
+      const fetchUnreadCount = async () => {
+        try {
+          const response = await getChats();
+          const totalUnreadCount = response.data?.totalUnread || 0;
+          setTotalUnread(totalUnreadCount);
+        } catch {
+          // Silently fail
+        }
+      };
+      fetchUnreadCount();
+    }
+  }, [location.pathname, location.hash, setTotalUnread]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -260,7 +318,7 @@ const ProfileMenu = () => {
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 💬 My Conversations
               </span>
-              {badgeText && (
+              {showBadge && (
                 <span style={{
                   backgroundColor: '#1a1a1a',
                   color: '#fff',
