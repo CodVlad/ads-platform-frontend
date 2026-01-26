@@ -27,6 +27,11 @@ export const sendMessage = (conversationId, text) => {
   return api.post(`/chats/${conversationId}/messages`, { text });
 };
 
+// Cache for unread-count (30 seconds)
+let unreadCountCache = null;
+let unreadCountCacheTime = 0;
+const UNREAD_COUNT_CACHE_MS = 30000; // 30 seconds
+
 export const getUnreadCount = () => {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -36,3 +41,34 @@ export const getUnreadCount = () => {
   return api.get('/chats/unread-count');
 };
 
+/**
+ * Get unread count with 30 second cache
+ * @returns {Promise<{data: {count: number}}>}
+ */
+export const getUnreadCountCached = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return Promise.resolve({ data: { count: 0 } });
+  }
+  
+  const now = Date.now();
+  
+  // Return cached result if still valid (within 30 seconds)
+  if (unreadCountCache && (now - unreadCountCacheTime) < UNREAD_COUNT_CACHE_MS) {
+    return unreadCountCache;
+  }
+  
+  // Fetch and cache
+  try {
+    const response = await api.get('/chats/unread-count');
+    unreadCountCache = response;
+    unreadCountCacheTime = now;
+    return response;
+  } catch (error) {
+    // If error, return cached value if available, otherwise throw
+    if (unreadCountCache) {
+      return unreadCountCache;
+    }
+    throw error;
+  }
+};
