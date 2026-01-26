@@ -97,11 +97,15 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
         cursor: 'pointer',
         padding: 0,
         overflow: 'hidden',
-        transition: 'transform 0.2s, box-shadow 0.2s',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+        border: '1px solid #e5e7eb',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-4px)';
-        e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.15)';
+        e.currentTarget.style.transform = 'translateY(-6px)';
+        e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.12)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
@@ -111,9 +115,13 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
       {coverImage && (
         <div style={{
           width: '100%',
-          aspectRatio: '16/9',
+          height: '240px',
           overflow: 'hidden',
           backgroundColor: '#f8f9fa',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
         }}>
           <img
             src={coverImage}
@@ -121,55 +129,74 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
+              objectFit: 'contain',
+              objectPosition: 'center',
+            }}
+            onError={(e) => {
+              e.target.style.display = 'none';
             }}
           />
         </div>
       )}
-      <div style={{ padding: '16px' }}>
+      <div style={{ 
+        padding: '20px', 
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+      }}>
         <h3 style={{ 
-          margin: '0 0 12px 0', 
-          fontSize: '18px',
+          margin: '0 0 16px 0', 
+          fontSize: '19px',
           fontWeight: '600',
           color: '#1a1a1a',
-          lineHeight: '1.3',
+          lineHeight: '1.4',
           display: '-webkit-box',
           WebkitLineClamp: 2,
           WebkitBoxOrient: 'vertical',
           overflow: 'hidden',
+          minHeight: '53px',
         }}>
           {ad.title}
         </h3>
         <div style={{ 
-          marginBottom: '12px',
+          marginBottom: '16px',
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
+          justifyContent: 'space-between',
+          gap: '12px',
           flexWrap: 'wrap',
         }}>
           <div style={{ 
-            fontSize: '22px', 
+            fontSize: '24px', 
             fontWeight: '700',
             color: '#007bff',
+            letterSpacing: '-0.5px',
           }}>
             {ad.price} {ad.currency}
           </div>
           {ad.status && (
             <div style={{
               display: 'inline-block',
-              padding: '4px 10px',
-              backgroundColor: ad.status === 'active' ? '#d4edda' : ad.status === 'sold' ? '#f8d7da' : '#e2e3e5',
-              color: ad.status === 'active' ? '#155724' : ad.status === 'sold' ? '#721c24' : '#383d41',
-              borderRadius: '12px',
+              padding: '6px 12px',
+              backgroundColor: ad.status === 'active' ? '#d1fae5' : ad.status === 'sold' ? '#fee2e2' : '#f3f4f6',
+              color: ad.status === 'active' ? '#065f46' : ad.status === 'sold' ? '#991b1b' : '#374151',
+              borderRadius: '20px',
               fontSize: '11px',
               fontWeight: '600',
               textTransform: 'uppercase',
+              letterSpacing: '0.5px',
             }}>
               {ad.status}
             </div>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+        <div style={{ 
+          display: 'flex', 
+          gap: '10px', 
+          marginTop: 'auto',
+          paddingTop: '16px',
+          borderTop: '1px solid #f3f4f6',
+        }}>
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -179,9 +206,11 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
             className="btn-primary"
             style={{
               flex: 1,
-              padding: '10px',
+              padding: '12px',
               fontSize: '14px',
-              fontWeight: '500',
+              fontWeight: '600',
+              borderRadius: '8px',
+              transition: 'all 0.2s',
             }}
           >
             View Details
@@ -192,10 +221,13 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
               disabled={busy || !canFavorite}
               className={saved ? 'btn-danger' : 'btn-secondary'}
               style={{
-                padding: '10px 16px',
-                fontSize: '14px',
+                padding: '12px 16px',
+                fontSize: '18px',
+                borderRadius: '8px',
                 opacity: (busy || !canFavorite) ? 0.6 : 1,
                 cursor: (busy || !canFavorite) ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+                minWidth: '48px',
               }}
             >
               {busy ? '...' : (saved ? '❤️' : '🤍')}
@@ -204,20 +236,24 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
         </div>
         {showFavoriteButton && !canFavorite && (
           <div style={{
-            color: '#999',
+            color: '#9ca3af',
             fontSize: '12px',
-            marginTop: '8px',
+            marginTop: '10px',
             textAlign: 'center',
+            fontStyle: 'italic',
           }}>
             Activate ad to save
           </div>
         )}
         {showFavoriteButton && error && (
           <div style={{
-            color: '#c53030',
+            color: '#dc2626',
             fontSize: '12px',
-            marginTop: '8px',
+            marginTop: '10px',
             textAlign: 'center',
+            padding: '6px',
+            backgroundColor: '#fef2f2',
+            borderRadius: '6px',
           }}>
             {error}
           </div>

@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { forgotPassword } from '../api/endpoints';
 import { useToast } from '../hooks/useToast';
+import { parseError } from '../utils/errorParser';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const { success: showSuccess } = useToast();
+  const { success: showSuccess, error: showError } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,13 +26,25 @@ const ForgotPassword = () => {
 
     try {
       await forgotPassword({ email });
-      // Always show success message for security (even if email not found)
+      // Success - show success message
       setSuccess(true);
       showSuccess('If an account exists with this email, a password reset link has been sent.');
-    } catch {
-      // Always show success message for security (even on error)
-      setSuccess(true);
-      showSuccess('If an account exists with this email, a password reset link has been sent.');
+    } catch (err) {
+      const status = err?.response?.status;
+      const backend = err?.response?.data;
+      
+      // Check for EMAIL_NOT_FOUND error (404 with details.type === "EMAIL_NOT_FOUND")
+      if (status === 404 && backend?.details?.type === "EMAIL_NOT_FOUND") {
+        const errorMessage = 'Nu există cont cu acest email.';
+        setError(errorMessage);
+        showError(errorMessage);
+      } else {
+        // For other errors, show generic error
+        const errorMessage = parseError(err);
+        setError(errorMessage);
+        showError(errorMessage);
+      }
+      setSuccess(false);
     } finally {
       setLoading(false);
     }
