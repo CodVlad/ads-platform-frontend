@@ -31,19 +31,18 @@ const ForgotPassword = () => {
       showSuccess('If an account exists with this email, a password reset link has been sent.');
     } catch (err) {
       const status = err?.response?.status;
-      const backend = err?.response?.data;
-      
-      // Check for EMAIL_NOT_FOUND error (404 with details.type === "EMAIL_NOT_FOUND")
-      if (status === 404 && backend?.details?.type === "EMAIL_NOT_FOUND") {
-        const errorMessage = 'Nu există cont cu acest email.';
-        setError(errorMessage);
-        showError(errorMessage);
-      } else {
-        // For other errors, show generic error
-        const errorMessage = parseError(err);
-        setError(errorMessage);
-        showError(errorMessage);
+      const type = err?.response?.data?.details?.type;
+
+      if (status === 404 && type === 'EMAIL_NOT_FOUND') {
+        setError('Cont cu emailul dat nu există');
+        showError?.('Cont cu emailul dat nu există');
+        return;
       }
+
+      // For other errors, show generic error
+      const errorMessage = parseError(err);
+      setError(errorMessage);
+      showError(errorMessage);
       setSuccess(false);
     } finally {
       setLoading(false);
