@@ -71,23 +71,19 @@ const AdDetails = () => {
       return;
     }
 
-    // Compute receiverId only from ad owner/seller fields (not current user)
+    // receiverId must be taken ONLY from a real owner id (only _id fields)
     const receiverId =
       ad?.user?._id ||
       ad?.owner?._id ||
-      ad?.seller?._id ||
       ad?.createdBy?._id ||
-      ad?.userId ||
-      ad?.ownerId ||
-      ad?.sellerId ||
-      ad?.createdById;
+      ad?.seller?._id;
 
     // Normalize to string
     const receiverIdStr = receiverId ? String(receiverId).trim() : '';
 
-    // Validate receiverId
-    if (receiverIdStr === '' || receiverIdStr === 'null' || receiverIdStr === 'undefined') {
-      showError('Seller id missing. Cannot start chat.');
+    // If receiverId missing OR equals "null"/"undefined" => show toast and return
+    if (!receiverIdStr || receiverIdStr === 'null' || receiverIdStr === 'undefined') {
+      showError('Seller id missing');
       return;
     }
 
@@ -366,19 +362,16 @@ const AdDetails = () => {
                       // Disable if user not logged in, seller id missing, or self-messaging
                       if (!user) return true;
                       
+                      // receiverId must be taken ONLY from a real owner id (only _id fields)
                       const receiverId =
                         ad?.user?._id ||
                         ad?.owner?._id ||
-                        ad?.seller?._id ||
                         ad?.createdBy?._id ||
-                        ad?.userId ||
-                        ad?.ownerId ||
-                        ad?.sellerId ||
-                        ad?.createdById;
+                        ad?.seller?._id;
                       const receiverIdStr = receiverId ? String(receiverId).trim() : '';
                       const currentUserId = user ? String(user._id || user.id).trim() : '';
                       
-                      const isMissing = receiverIdStr === '' || receiverIdStr === 'null' || receiverIdStr === 'undefined';
+                      const isMissing = !receiverIdStr || receiverIdStr === 'null' || receiverIdStr === 'undefined';
                       const isSelf = receiverIdStr === currentUserId;
                       
                       return contacting || isMissing || isSelf;

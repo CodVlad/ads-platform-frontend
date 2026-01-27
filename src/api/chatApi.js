@@ -35,9 +35,9 @@ export const startChat = async ({ receiverId }) => {
   // Normalize to string
   const receiverIdStr = String(receiverId || '').trim();
 
-  // Validate receiverId exists and is not empty
-  if (receiverIdStr === 'null' || receiverIdStr === 'undefined' || receiverIdStr === '') {
-    throw new Error('Missing receiverId');
+  // Validate receiverId before request
+  if (!receiverId || receiverIdStr === '' || ['null', 'undefined'].includes(receiverIdStr)) {
+    throw new Error('Seller id missing');
   }
 
   // HARD GUARD: never call protected endpoint without token
