@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getChats } from '../api/chat';
+import { deleteChat } from '../api/chatApi';
 import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
 import { useAuth } from '../auth/useAuth.js';
@@ -10,10 +11,11 @@ const Chats = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { error: showError } = useToast();
+  const { error: showError, success: showSuccess } = useToast();
   const { setTotalUnread } = useUnread();
   const [loading, setLoading] = useState(true);
   const [chats, setChats] = useState([]);
+  const [deletingChatId, setDeletingChatId] = useState(null);
 
   useEffect(() => {
     // Redirect to login if no token
@@ -137,6 +139,32 @@ const Chats = () => {
   const formatChatBadge = (count) => {
     if (!count || count === 0) return null;
     return count > 99 ? '99+' : String(count);
+  };
+
+  // Handle delete chat
+  const handleDeleteChat = async (e, chatId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!window.confirm('Delete this conversation? This will remove all messages.')) {
+      return;
+    }
+
+    setDeletingChatId(chatId);
+    try {
+      await deleteChat(chatId);
+      // Remove chat from state immediately
+      setChats(prev => prev.filter(c => c._id !== chatId));
+      showSuccess('Conversation deleted');
+    } catch (err) {
+      const msg = parseError(err);
+      showError(msg);
+      if (err?.response?.status === 401) {
+        navigate('/login');
+      }
+    } finally {
+      setDeletingChatId(null);
+    }
   };
 
   if (loading) {
@@ -283,8 +311,44 @@ const Chats = () => {
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'flex-end',
-                      gap: '4px',
+                      gap: '8px',
                     }}>
+                      <button
+                        onClick={(e) => handleDeleteChat(e, chat._id)}
+                        disabled={deletingChatId === chat._id}
+                        style={{
+                          background: 'transparent',
+                          border: '1px solid #ddd',
+                          borderRadius: '6px',
+                          padding: '6px 10px',
+                          cursor: deletingChatId === chat._id ? 'not-allowed' : 'pointer',
+                          fontSize: '14px',
+                          color: '#666',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          minWidth: '32px',
+                          height: '32px',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (deletingChatId !== chat._id) {
+                            e.currentTarget.style.borderColor = '#ef4444';
+                            e.currentTarget.style.color = '#ef4444';
+                            e.currentTarget.style.backgroundColor = '#fef2f2';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (deletingChatId !== chat._id) {
+                            e.currentTarget.style.borderColor = '#ddd';
+                            e.currentTarget.style.color = '#666';
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }
+                        }}
+                        title="Delete conversation"
+                      >
+                        {deletingChatId === chat._id ? '...' : '🗑️'}
+                      </button>
                       {chat.updatedAt && (
                         <div style={{ 
                           fontSize: '12px', 

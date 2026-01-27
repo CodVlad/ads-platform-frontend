@@ -100,3 +100,51 @@ export const startChat = async ({ receiverId }) => {
     throw enhancedError;
   }
 };
+
+/**
+ * Delete a chat conversation
+ * @param {string} chatId - Chat ID (Mongo ObjectId)
+ * @returns {Promise<any>}
+ * @throws {Error} If validation fails or request fails
+ */
+export const deleteChat = async (chatId) => {
+  // Validate chatId
+  const chatIdStr = String(chatId || '').trim();
+  if (!chatId || chatIdStr === '' || ['null', 'undefined'].includes(chatIdStr)) {
+    throw new Error('Chat ID is required');
+  }
+
+  // HARD GUARD: never call protected endpoint without token
+  const token = getToken();
+  if (!token) {
+    const error = new Error('Authentication token is required');
+    // Silent - no console spam
+    throw error;
+  }
+
+  // Prepare request
+  const API_URL = getApiUrl();
+  const url = `${API_URL}/chats/${chatIdStr}`;
+
+  try {
+    const response = await axios.delete(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    // Re-throw with more context
+    const enhancedError = new Error(
+      error.response?.data?.message || 
+      error.response?.data?.error || 
+      error.message || 
+      'Failed to delete chat'
+    );
+    enhancedError.status = error.response?.status;
+    enhancedError.responseData = error.response?.data;
+    throw enhancedError;
+  }
+};
