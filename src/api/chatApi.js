@@ -39,13 +39,11 @@ export const startChat = async ({ receiverId, adId }) => {
 
   // Before axios call, reject if receiverIdStr/adIdStr is "null" or "undefined" (string)
   if (receiverIdStr === 'null' || receiverIdStr === 'undefined' || receiverIdStr === '') {
-    console.error('[CHAT_API] Validation failed: receiverId is missing or invalid', { receiverId, receiverIdStr, adId });
-    throw new Error('Missing receiverId/adId');
+    throw new Error('Missing receiverId');
   }
 
   if (adIdStr === 'null' || adIdStr === 'undefined' || adIdStr === '') {
-    console.error('[CHAT_API] Validation failed: adId is missing or invalid', { receiverId, adId, adIdStr });
-    throw new Error('Missing receiverId/adId');
+    throw new Error('Missing adId');
   }
 
   // HARD GUARD: never call protected endpoint without token
@@ -60,21 +58,16 @@ export const startChat = async ({ receiverId, adId }) => {
   const API_URL = getApiUrl();
   const url = `${API_URL}/chats/start`;
   
-  // Keep payload exactly { receiverId, adId }
+  // Ensure payload is EXACT: { receiverId, adId } (no `ad`, no `adIdRaw`, no null strings)
   const payload = {
     receiverId: receiverIdStr,
     adId: adIdStr
   };
 
-  // Add dev-only debug log before request
+  // Dev-only log showing what is being sent
   if (import.meta.env.DEV) {
-    console.log('[CHAT_START] sending', { receiverId: receiverIdStr, adId: adIdStr });
+    console.log('[CHAT_START_FRONT] payload', { receiverId: receiverIdStr, adId: adIdStr });
   }
-
-  // Log request payload before sending
-  console.log('[CHAT_API] Request payload:', payload);
-  console.log('[CHAT_API] Request URL:', url);
-  console.log('[CHAT_API] Has token:', !!token);
 
   try {
     const response = await axios.post(url, payload, {

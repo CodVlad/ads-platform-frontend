@@ -71,52 +71,55 @@ const AdDetails = () => {
       return;
     }
 
-    // Compute adIdStr from ad object
-    const adIdStr = String(ad?._id || ad?.id || '').trim();
+    // adId must always come from route param `id` (source of truth)
+    const adIdStr = id ? String(id).trim() : '';
 
-    // Compute receiverIdStr from ad owner fields
-    const receiverId =
-      ad?.user?._id || ad?.user || ad?.userId ||
-      ad?.owner?._id || ad?.owner || ad?.ownerId ||
-      ad?.createdBy?._id || ad?.createdBy || ad?.createdById ||
-      ad?.seller?._id || ad?.seller || ad?.sellerId;
-
-    // Normalize to string
-    const receiverIdStr = String(receiverId || '').trim();
-
-    // Block if adIdStr is "" OR "null" OR "undefined"
+    // Validate adId
     if (adIdStr === '' || adIdStr === 'null' || adIdStr === 'undefined') {
       showError('Ad id missing. Cannot start chat.');
       return;
     }
 
-    // Block if receiverIdStr is "" OR "null" OR "undefined"
+    // Compute receiverId strictly from ad owner/seller (not current user)
+    const receiverId =
+      ad?.user?._id ||
+      ad?.owner?._id ||
+      ad?.seller?._id ||
+      ad?.createdBy?._id ||
+      ad?.userId ||
+      ad?.ownerId ||
+      ad?.sellerId ||
+      ad?.createdById;
+
+    // Normalize to string
+    const receiverIdStr = receiverId ? String(receiverId).trim() : '';
+
+    // Validate receiverId
     if (receiverIdStr === '' || receiverIdStr === 'null' || receiverIdStr === 'undefined') {
       showError('Seller id missing. Cannot start chat.');
       return;
     }
 
-    // If receiverId === currentUserId -> toast "You can't message yourself" and stop
+    // Prevent self-messaging
     const currentUserId = String(user._id || user.id).trim();
     if (receiverIdStr === currentUserId) {
       showError("You can't message yourself");
       return;
     }
 
-    // Add DEV log right before request
+    // Dev-only log showing what is being sent
     if (import.meta.env.DEV) {
-      console.log('[CHAT_START] payload', { receiverId: receiverIdStr, adId: adIdStr });
+      console.log('[CHAT_START_FRONT] sending', { receiverId: receiverIdStr, adId: adIdStr });
     }
 
     setContacting(true);
     try {
-      // Call startChat with { receiverId, adId }
+      // Call startChat with EXACT payload: { receiverId, adId }
       const response = await startChat({ receiverId: receiverIdStr, adId: adIdStr });
       
-      // Fix chatId extraction after API:
-      // startChat returns { success, message, chat: { _id } }
-      // so use: response?.chat?._id
-      const chatId = response?.chat?._id;
+      // Extract chatId correctly from response
+      // Backend returns { success, message, chat: { _id } }
+      const chatId = response?.chat?._id || response?.data?.chat?._id;
       if (chatId) {
         navigate(`/chats/${chatId}`);
       } else {
