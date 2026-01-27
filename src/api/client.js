@@ -41,7 +41,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor to clear loading and handle 429
+// Response interceptor to clear loading and handle 429/401
 api.interceptors.response.use(
   (response) => {
     setApiLoading(false);
@@ -67,6 +67,13 @@ api.interceptors.response.use(
         error.config.data || error.config.params
       );
       inFlightRequests.delete(requestKey);
+    }
+    
+    // On 401: clear token and user (silent, no console spam)
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      // Don't log 401 errors
     }
     
     // On 429: read retry-after header if exists

@@ -21,6 +21,15 @@ export const FavoritesProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await getFavorites();
+      
+      // Check if request was skipped (no token)
+      if (response.data?.skipped) {
+        setFavoriteIds(new Set());
+        setFavorites([]);
+        setLoading(false);
+        return;
+      }
+      
       const data = response.data;
       
       let idsSet = new Set();

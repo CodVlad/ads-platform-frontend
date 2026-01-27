@@ -41,6 +41,13 @@ const Navbar = () => {
     let alive = true;
 
     const load = async () => {
+      // STOP calling protected endpoints when token missing
+      const token = localStorage.getItem('token');
+      if (!token || !user) {
+        setUnread(0);
+        return;
+      }
+
       try {
         const data = await safeGetUnreadCount();
         if (!alive) return;
@@ -57,6 +64,11 @@ const Navbar = () => {
       } catch (e) {
         // Silent fail - never log 429 or spam console
         if (e?.response?.status === 429) {
+          return;
+        }
+        // Handle 401 silently
+        if (e?.response?.status === 401) {
+          setUnread(0);
           return;
         }
       }
@@ -76,7 +88,12 @@ const Navbar = () => {
 
   // Refresh when navigating to /chats (messages might have been read)
   useEffect(() => {
-    if (user && (location.pathname === '/chats' || location.hash === '#/chats')) {
+    const token = localStorage.getItem('token');
+    if (!token || !user) {
+      return;
+    }
+
+    if (location.pathname === '/chats' || location.hash === '#/chats') {
       const load = async () => {
         try {
           const data = await safeGetUnreadCount();
@@ -93,6 +110,11 @@ const Navbar = () => {
         } catch (e) {
           // Silent fail - never log 429
           if (e?.response?.status === 429) {
+            return;
+          }
+          // Handle 401 silently
+          if (e?.response?.status === 401) {
+            setUnread(0);
             return;
           }
         }

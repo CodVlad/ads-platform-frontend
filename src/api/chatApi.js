@@ -48,11 +48,11 @@ export const startChat = async ({ receiverId, adId }) => {
     throw new Error('Missing receiverId/adId');
   }
 
-  // Verify token exists
+  // HARD GUARD: never call protected endpoint without token
   const token = getToken();
   if (!token) {
     const error = new Error('Authentication token is required');
-    console.error('[CHAT_API] No token found');
+    // Silent - no console spam
     throw error;
   }
 

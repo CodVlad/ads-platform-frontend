@@ -43,6 +43,11 @@ export const deleteAd = (id) =>
 
 // FAVORITES endpoints (protected)
 export const getFavorites = () => {
+  // HARD GUARD: never call protected endpoint without token
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return Promise.resolve({ data: { success: false, skipped: true, favorites: [] } });
+  }
   return api.get('/favorites/my');
 };
 

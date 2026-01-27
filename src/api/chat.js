@@ -16,6 +16,11 @@ export const startChat = (receiverId, adId) => {
 };
 
 export const getChats = () => {
+  // HARD GUARD: never call protected endpoint without token
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return Promise.resolve({ data: { success: false, skipped: true, chats: [], totalUnread: 0 } });
+  }
   return api.get('/chats');
 };
 
@@ -36,9 +41,10 @@ let unreadCountCacheTime = 0;
 const UNREAD_COUNT_CACHE_MS = 30000; // 30 seconds
 
 export const getUnreadCount = async () => {
+  // HARD GUARD: never call protected endpoint without token
   const token = localStorage.getItem('token');
   if (!token) {
-    return { success: true, count: 0 };
+    return { success: false, skipped: true, count: 0 };
   }
   
   try {
@@ -47,6 +53,10 @@ export const getUnreadCount = async () => {
     const count = response.data?.count || response.data?.data?.count || 0;
     return { success: true, count };
   } catch (error) {
+    // Never log 429 errors
+    if (error?.response?.status === 429) {
+      return { success: false, rateLimited: true, count: 0 };
+    }
     // Return 0 on error to avoid breaking UI
     return { success: true, count: 0 };
   }

@@ -21,7 +21,9 @@ const ProfileMenu = () => {
   // Polling: fetch unread count every 30 seconds
   useEffect(() => {
     const fetchUnreadCount = async () => {
-      if (!user) {
+      // STOP calling protected endpoints when token missing
+      const token = localStorage.getItem('token');
+      if (!token || !user) {
         setTotalUnread(0);
         return;
       }
@@ -29,11 +31,23 @@ const ProfileMenu = () => {
       try {
         // Fetch chats to get totalUnread
         const response = await getChats();
+        
+        // Check if request was skipped (no token)
+        if (response.data?.skipped) {
+          setTotalUnread(0);
+          return;
+        }
+        
         const totalUnreadCount = response.data?.totalUnread || 0;
         setTotalUnread(totalUnreadCount);
       } catch (err) {
         // Silent fail - never log 429
         if (err?.response?.status === 429) {
+          return;
+        }
+        // Handle 401 silently
+        if (err?.response?.status === 401) {
+          setTotalUnread(0);
           return;
         }
       }
@@ -47,6 +61,8 @@ const ProfileMenu = () => {
       pollIntervalRef.current = setInterval(() => {
         fetchUnreadCount();
       }, 30000);
+    } else {
+      setTotalUnread(0);
     }
 
     return () => {
@@ -58,10 +74,21 @@ const ProfileMenu = () => {
 
   // Refresh when navigating to /chats
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token || !user) {
+      return;
+    }
+
     if (location.pathname === '/chats' || location.hash === '#/chats') {
       const fetchUnreadCount = async () => {
         try {
           const response = await getChats();
+          
+          // Check if request was skipped (no token)
+          if (response.data?.skipped) {
+            return;
+          }
+          
           const totalUnreadCount = response.data?.totalUnread || 0;
           setTotalUnread(totalUnreadCount);
         } catch (err) {
@@ -69,11 +96,15 @@ const ProfileMenu = () => {
           if (err?.response?.status === 429) {
             return;
           }
+          // Handle 401 silently
+          if (err?.response?.status === 401) {
+            return;
+          }
         }
       };
       fetchUnreadCount();
     }
-  }, [location.pathname, location.hash, setTotalUnread]);
+  }, [location.pathname, location.hash, setTotalUnread, user]);
 
   // Close menu when clicking outside
   useEffect(() => {

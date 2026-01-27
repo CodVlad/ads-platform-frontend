@@ -31,14 +31,24 @@ const ChatDetail = () => {
       
       // Backend marks messages as read when fetching
       // Refresh totalUnread by fetching chats
-      try {
-        const chatsResponse = await getChats();
-        const totalUnreadCount = chatsResponse.data?.totalUnread || 0;
-        setTotalUnread(totalUnreadCount);
-      } catch (err) {
-        // Silent fail - never log 429
-        if (err?.response?.status === 429) {
-          return;
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const chatsResponse = await getChats();
+          // Check if request was skipped (no token)
+          if (!chatsResponse.data?.skipped) {
+            const totalUnreadCount = chatsResponse.data?.totalUnread || 0;
+            setTotalUnread(totalUnreadCount);
+          }
+        } catch (err) {
+          // Silent fail - never log 429
+          if (err?.response?.status === 429) {
+            return;
+          }
+          // Handle 401 silently
+          if (err?.response?.status === 401) {
+            return;
+          }
         }
       }
     } catch (err) {

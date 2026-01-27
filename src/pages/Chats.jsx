@@ -16,10 +16,23 @@ const Chats = () => {
   const [chats, setChats] = useState([]);
 
   useEffect(() => {
+    // Redirect to login if no token
+    const token = localStorage.getItem('token');
+    if (!token || !user) {
+      navigate('/login');
+      return;
+    }
+
     const fetchChats = async () => {
       try {
         setLoading(true);
         const response = await getChats();
+        
+        // Check if request was skipped (no token)
+        if (response.data?.skipped) {
+          navigate('/login');
+          return;
+        }
         
         // API returns: { success, chats: [...], totalUnread }
         const chatsData = response.data?.chats || [];
@@ -35,6 +48,11 @@ const Chats = () => {
           setLoading(false);
           return;
         }
+        // Handle 401 - redirect to login
+        if (err?.response?.status === 401) {
+          navigate('/login');
+          return;
+        }
         const errorMessage = parseError(err);
         showError(errorMessage);
       } finally {
@@ -43,14 +61,22 @@ const Chats = () => {
     };
 
     fetchChats();
-  }, [showError, setTotalUnread]);
+  }, [showError, setTotalUnread, user, navigate]);
 
   // Refetch when navigating back to /chats (e.g., from ChatDetail)
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token || !user) {
+      return;
+    }
+
     if (location.pathname === '/chats' || location.hash === '#/chats') {
       const fetchChats = async () => {
         try {
           const response = await getChats();
+          if (response.data?.skipped) {
+            return;
+          }
           const chatsData = response.data?.chats || [];
           const totalUnreadCount = response.data?.totalUnread || 0;
           
@@ -61,11 +87,15 @@ const Chats = () => {
           if (err?.response?.status === 429) {
             return;
           }
+          // Handle 401 silently
+          if (err?.response?.status === 401) {
+            return;
+          }
         }
       };
       fetchChats();
     }
-  }, [location.pathname, location.hash, setTotalUnread]);
+  }, [location.pathname, location.hash, setTotalUnread, user]);
 
   const getOtherParticipant = (chat) => {
     if (!chat.participants || !Array.isArray(chat.participants)) return null;
