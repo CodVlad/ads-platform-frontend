@@ -71,16 +71,7 @@ const AdDetails = () => {
       return;
     }
 
-    // adId must always come from route param `id` (source of truth)
-    const adIdStr = id ? String(id).trim() : '';
-
-    // Validate adId
-    if (adIdStr === '' || adIdStr === 'null' || adIdStr === 'undefined') {
-      showError('Ad id missing. Cannot start chat.');
-      return;
-    }
-
-    // Compute receiverId strictly from ad owner/seller (not current user)
+    // Compute receiverId only from ad owner/seller fields (not current user)
     const receiverId =
       ad?.user?._id ||
       ad?.owner?._id ||
@@ -109,17 +100,17 @@ const AdDetails = () => {
 
     // Dev-only log showing what is being sent
     if (import.meta.env.DEV) {
-      console.log('[CHAT_START_FRONT] sending', { receiverId: receiverIdStr, adId: adIdStr });
+      console.log('[CHAT_START_FRONT] sending', { receiverId: receiverIdStr });
     }
 
     setContacting(true);
     try {
-      // Call startChat with EXACT payload: { receiverId, adId }
-      const response = await startChat({ receiverId: receiverIdStr, adId: adIdStr });
+      // Call startChat with ONLY receiverId (Direct Messages only - no adId)
+      const response = await startChat({ receiverId: receiverIdStr });
       
-      // Extract chatId correctly from response
+      // Extract chatId robustly from response
       // Backend returns { success, message, chat: { _id } }
-      const chatId = response?.chat?._id || response?.data?.chat?._id;
+      const chatId = response?.chat?._id || response?.data?.chat?._id || response?.data?._id;
       if (chatId) {
         navigate(`/chats/${chatId}`);
       } else {
@@ -372,18 +363,24 @@ const AdDetails = () => {
                   <button
                     onClick={handleContactSeller}
                     disabled={(() => {
-                      // Update button disabled condition to match the same logic
-                      const adIdStr = String(ad?._id || ad?.id || '').trim();
+                      // Disable if user not logged in, seller id missing, or self-messaging
+                      if (!user) return true;
+                      
                       const receiverId =
-                        ad?.user?._id || ad?.user || ad?.userId ||
-                        ad?.owner?._id || ad?.owner || ad?.ownerId ||
-                        ad?.createdBy?._id || ad?.createdBy || ad?.createdById ||
-                        ad?.seller?._id || ad?.seller || ad?.sellerId;
-                      const receiverIdStr = String(receiverId || '').trim();
+                        ad?.user?._id ||
+                        ad?.owner?._id ||
+                        ad?.seller?._id ||
+                        ad?.createdBy?._id ||
+                        ad?.userId ||
+                        ad?.ownerId ||
+                        ad?.sellerId ||
+                        ad?.createdById;
+                      const receiverIdStr = receiverId ? String(receiverId).trim() : '';
                       const currentUserId = user ? String(user._id || user.id).trim() : '';
-                      const isMissing = adIdStr === '' || adIdStr === 'null' || adIdStr === 'undefined' ||
-                                       receiverIdStr === '' || receiverIdStr === 'null' || receiverIdStr === 'undefined';
+                      
+                      const isMissing = receiverIdStr === '' || receiverIdStr === 'null' || receiverIdStr === 'undefined';
                       const isSelf = receiverIdStr === currentUserId;
+                      
                       return contacting || isMissing || isSelf;
                     })()}
                     className="btn-primary"
@@ -392,8 +389,6 @@ const AdDetails = () => {
                       padding: '12px',
                       fontSize: '16px',
                       fontWeight: '600',
-                      opacity: (contacting || !ad || !(ad?._id || ad?.id) || !(ad?.user?._id || ad?.seller?._id || ad?.owner?._id || ad?.createdBy?._id || ad?.userId)) ? 0.6 : 1,
-                      cursor: (contacting || !ad || !(ad?._id || ad?.id) || !(ad?.user?._id || ad?.seller?._id || ad?.owner?._id || ad?.createdBy?._id || ad?.userId)) ? 'not-allowed' : 'pointer',
                     }}
                   >
                     {contacting ? 'Starting conversation...' : '💬 Contact Seller'}

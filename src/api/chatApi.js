@@ -25,25 +25,19 @@ const getToken = () => {
 };
 
 /**
- * Start a new chat with a seller
+ * Start a new chat with a seller (Direct Messages only - no ad/adId)
  * @param {Object} params - Chat start parameters
  * @param {string} params.receiverId - Receiver/Seller ID (Mongo ObjectId)
- * @param {string} params.adId - Ad ID (Mongo ObjectId)
  * @returns {Promise<ChatResponse>}
  * @throws {Error} If validation fails or request fails
  */
-export const startChat = async ({ receiverId, adId }) => {
-  // Normalize to strings first
+export const startChat = async ({ receiverId }) => {
+  // Normalize to string
   const receiverIdStr = String(receiverId || '').trim();
-  const adIdStr = String(adId || '').trim();
 
-  // Before axios call, reject if receiverIdStr/adIdStr is "null" or "undefined" (string)
+  // Validate receiverId exists and is not empty
   if (receiverIdStr === 'null' || receiverIdStr === 'undefined' || receiverIdStr === '') {
     throw new Error('Missing receiverId');
-  }
-
-  if (adIdStr === 'null' || adIdStr === 'undefined' || adIdStr === '') {
-    throw new Error('Missing adId');
   }
 
   // HARD GUARD: never call protected endpoint without token
@@ -58,15 +52,14 @@ export const startChat = async ({ receiverId, adId }) => {
   const API_URL = getApiUrl();
   const url = `${API_URL}/chats/start`;
   
-  // Ensure payload is EXACT: { receiverId, adId } (no `ad`, no `adIdRaw`, no null strings)
+  // Payload exactly: { receiverId: receiverIdStr }
   const payload = {
-    receiverId: receiverIdStr,
-    adId: adIdStr
+    receiverId: receiverIdStr
   };
 
   // Dev-only log showing what is being sent
   if (import.meta.env.DEV) {
-    console.log('[CHAT_START_FRONT] payload', { receiverId: receiverIdStr, adId: adIdStr });
+    console.log('[CHAT_START_FRONT] payload', { receiverId: receiverIdStr });
   }
 
   try {
