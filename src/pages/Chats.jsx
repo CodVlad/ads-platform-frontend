@@ -178,53 +178,134 @@ const Chats = () => {
 
   if (loading) {
     return (
-      <div className="page-container">
-        <div className="container" style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <div style={{ fontSize: '18px', color: '#666' }}>Loading conversations...</div>
+      <div className="page-container" style={{ padding: 0 }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          minHeight: '60vh',
+          background: 'linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%)',
+        }}>
+          <div style={{ 
+            textAlign: 'center',
+            padding: '40px',
+            background: '#fff',
+            borderRadius: '16px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          }}>
+            <div style={{ 
+              fontSize: '32px', 
+              marginBottom: '16px',
+              animation: 'pulse 1.5s ease-in-out infinite',
+            }}>💬</div>
+            <div style={{ fontSize: '16px', color: '#666', fontWeight: '500' }}>
+              Loading conversations...
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="page-container">
-      <div className="container" style={{ maxWidth: '900px' }}>
-        <div style={{ marginBottom: '32px' }}>
-          <h1 style={{ 
-            fontSize: '2.5rem', 
-            fontWeight: '700', 
-            color: '#1a1a1a',
-            marginBottom: '8px',
-          }}>
-            💬 My Conversations
-          </h1>
-          <p style={{ 
-            fontSize: '1.1rem', 
-            color: '#666',
-            margin: 0,
-          }}>
-            {chats.length > 0 
-              ? `${chats.length} ${chats.length === 1 ? 'conversation' : 'conversations'}`
-              : 'Your conversations will appear here'
-            }
-          </p>
+    <div className="page-container" style={{ padding: 0, background: 'linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%)', minHeight: '100vh' }}>
+      <div style={{ 
+        maxWidth: '1000px', 
+        margin: '0 auto',
+        padding: '32px 20px',
+      }}>
+        {/* Header Section */}
+        <div style={{ 
+          marginBottom: '32px',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: '20px',
+          padding: '32px',
+          color: '#fff',
+          boxShadow: '0 8px 24px rgba(102, 126, 234, 0.3)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          {/* Decorative background pattern */}
+          <div style={{
+            position: 'absolute',
+            top: '-50%',
+            right: '-10%',
+            width: '300px',
+            height: '300px',
+            background: 'rgba(255,255,255,0.1)',
+            borderRadius: '50%',
+            filter: 'blur(60px)',
+          }} />
+          <div style={{
+            position: 'absolute',
+            bottom: '-30%',
+            left: '-5%',
+            width: '200px',
+            height: '200px',
+            background: 'rgba(255,255,255,0.08)',
+            borderRadius: '50%',
+            filter: 'blur(40px)',
+          }} />
+          
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h1 style={{ 
+              fontSize: '2.5rem', 
+              fontWeight: '700', 
+              color: '#fff',
+              marginBottom: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+            }}>
+              <span style={{
+                background: 'rgba(255,255,255,0.2)',
+                width: '56px',
+                height: '56px',
+                borderRadius: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '28px',
+                backdropFilter: 'blur(10px)',
+              }}>💬</span>
+              My Conversations
+            </h1>
+            <p style={{ 
+              fontSize: '1.1rem', 
+              color: 'rgba(255,255,255,0.9)',
+              margin: 0,
+              fontWeight: '400',
+            }}>
+              {chats.length > 0 
+                ? `${chats.length} ${chats.length === 1 ? 'conversation' : 'conversations'}`
+                : 'Your conversations will appear here'
+              }
+            </p>
+          </div>
         </div>
         
         {chats.length === 0 ? (
-          <div className="card" style={{ 
+          <div style={{ 
             textAlign: 'center', 
-            padding: '60px 20px',
+            padding: '80px 20px',
+            background: '#fff',
+            borderRadius: '20px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
           }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>💬</div>
+            <div style={{ 
+              fontSize: '80px', 
+              marginBottom: '24px',
+              opacity: 0.2,
+            }}>💬</div>
             <h3 style={{ 
               color: '#1a1a1a', 
-              marginBottom: '8px',
-              fontSize: '1.5rem',
+              marginBottom: '12px',
+              fontSize: '1.75rem',
               fontWeight: '600',
             }}>
               No conversations yet
             </h3>
-            <p style={{ color: '#666', fontSize: '16px' }}>
+            <p style={{ color: '#666', fontSize: '16px', maxWidth: '400px', margin: '0 auto' }}>
               Start a conversation by contacting a seller from an ad
             </p>
           </div>
@@ -235,137 +316,201 @@ const Chats = () => {
               const lastMessage = chat.lastMessage;
               const chatUnreadCount = getChatUnreadCount(chat);
               const unreadDisplay = formatChatBadge(chatUnreadCount);
+              const hasUnread = chatUnreadCount > 0;
               
               return (
                 <div
                   key={chat._id}
                   onClick={() => navigate(`/chats/${chat._id}`)}
-                  className="card"
                   style={{
                     cursor: 'pointer',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    background: '#fff',
+                    borderRadius: '16px',
                     padding: '20px',
                     position: 'relative',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: hasUnread 
+                      ? '0 4px 16px rgba(102, 126, 234, 0.15)' 
+                      : '0 2px 8px rgba(0,0,0,0.06)',
+                    border: hasUnread 
+                      ? '2px solid rgba(102, 126, 234, 0.2)' 
+                      : '2px solid transparent',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(102, 126, 234, 0.2)';
+                    e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.3)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                    e.currentTarget.style.boxShadow = hasUnread 
+                      ? '0 4px 16px rgba(102, 126, 234, 0.15)' 
+                      : '0 2px 8px rgba(0,0,0,0.06)';
+                    e.currentTarget.style.borderColor = hasUnread 
+                      ? 'rgba(102, 126, 234, 0.2)' 
+                      : 'transparent';
                   }}
                 >
                   <div style={{ 
                     display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'flex-start',
                     gap: '16px',
+                    alignItems: 'flex-start',
                   }}>
+                    {/* Avatar */}
+                    <div style={{
+                      width: '56px',
+                      height: '56px',
+                      borderRadius: '16px',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '24px',
+                      fontWeight: '600',
+                      color: '#fff',
+                      flexShrink: 0,
+                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                      position: 'relative',
+                    }}>
+                      {otherParticipant?.name?.[0]?.toUpperCase() || 'U'}
+                      {hasUnread && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '-4px',
+                          right: '-4px',
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          background: '#ef4444',
+                          border: '3px solid #fff',
+                          boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)',
+                        }} />
+                      )}
+                    </div>
+
+                    {/* Content */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ 
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px',
+                        justifyContent: 'space-between',
                         marginBottom: '8px',
+                        gap: '12px',
                       }}>
                         <div style={{ 
                           fontWeight: '600', 
                           fontSize: '18px', 
                           color: '#1a1a1a',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
                         }}>
                           {otherParticipant?.name || 'Unknown User'}
+                          {unreadDisplay && (
+                            <span style={{
+                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              color: '#fff',
+                              borderRadius: '12px',
+                              padding: '4px 10px',
+                              fontSize: '12px',
+                              fontWeight: '700',
+                              minWidth: '24px',
+                              textAlign: 'center',
+                              lineHeight: '1.4',
+                              boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+                            }}>
+                              {unreadDisplay}
+                            </span>
+                          )}
                         </div>
-                        {unreadDisplay && (
-                          <span style={{
-                            backgroundColor: '#1a1a1a',
-                            color: '#fff',
-                            borderRadius: '10px',
-                            padding: '2px 6px',
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            minWidth: '18px',
-                            textAlign: 'center',
-                            lineHeight: '1.4',
-                          }}>
-                            {unreadDisplay}
-                          </span>
-                        )}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}>
+                          {chat.updatedAt && (
+                            <div style={{ 
+                              fontSize: '12px', 
+                              color: '#999', 
+                              whiteSpace: 'nowrap',
+                              fontWeight: '500',
+                            }}>
+                              {formatDate(chat.updatedAt)}
+                            </div>
+                          )}
+                          <button
+                            onClick={(e) => handleDeleteChat(e, chat._id)}
+                            disabled={deletingChatId === chat._id}
+                            style={{
+                              background: 'transparent',
+                              border: '1px solid #e8ecf1',
+                              borderRadius: '8px',
+                              padding: '8px',
+                              cursor: deletingChatId === chat._id ? 'not-allowed' : 'pointer',
+                              fontSize: '16px',
+                              color: '#999',
+                              transition: 'all 0.2s',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '36px',
+                              height: '36px',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (deletingChatId !== chat._id) {
+                                e.currentTarget.style.borderColor = '#ef4444';
+                                e.currentTarget.style.color = '#ef4444';
+                                e.currentTarget.style.background = '#fef2f2';
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (deletingChatId !== chat._id) {
+                                e.currentTarget.style.borderColor = '#e8ecf1';
+                                e.currentTarget.style.color = '#999';
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }
+                            }}
+                            title="Delete conversation"
+                          >
+                            {deletingChatId === chat._id ? '...' : '🗑️'}
+                          </button>
+                        </div>
                       </div>
+                      
                       {chat.ad && (
                         <div style={{ 
                           fontSize: '14px', 
-                          color: '#666', 
+                          color: '#667eea', 
                           marginBottom: '8px',
                           fontWeight: '500',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
                         }}>
-                          📋 {chat.ad.title}
+                          <span>📋</span>
+                          <span style={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}>
+                            {chat.ad.title}
+                          </span>
                         </div>
                       )}
+                      
                       {lastMessage && (
                         <div style={{ 
-                          fontSize: '14px', 
-                          color: chatUnreadCount > 0 ? '#1a1a1a' : '#888',
-                          fontWeight: chatUnreadCount > 0 ? '500' : '400',
+                          fontSize: '15px', 
+                          color: hasUnread ? '#1a1a1a' : '#666',
+                          fontWeight: hasUnread ? '500' : '400',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
                           lineHeight: '1.5',
                         }}>
                           {lastMessage.text}
-                        </div>
-                      )}
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'flex-end',
-                      gap: '8px',
-                    }}>
-                      <button
-                        onClick={(e) => handleDeleteChat(e, chat._id)}
-                        disabled={deletingChatId === chat._id}
-                        style={{
-                          background: 'transparent',
-                          border: '1px solid #ddd',
-                          borderRadius: '6px',
-                          padding: '6px 10px',
-                          cursor: deletingChatId === chat._id ? 'not-allowed' : 'pointer',
-                          fontSize: '14px',
-                          color: '#666',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          minWidth: '32px',
-                          height: '32px',
-                        }}
-                        onMouseEnter={(e) => {
-                          if (deletingChatId !== chat._id) {
-                            e.currentTarget.style.borderColor = '#ef4444';
-                            e.currentTarget.style.color = '#ef4444';
-                            e.currentTarget.style.backgroundColor = '#fef2f2';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (deletingChatId !== chat._id) {
-                            e.currentTarget.style.borderColor = '#ddd';
-                            e.currentTarget.style.color = '#666';
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }
-                        }}
-                        title="Delete conversation"
-                      >
-                        {deletingChatId === chat._id ? '...' : '🗑️'}
-                      </button>
-                      {chat.updatedAt && (
-                        <div style={{ 
-                          fontSize: '12px', 
-                          color: '#999', 
-                          whiteSpace: 'nowrap',
-                          fontWeight: '500',
-                        }}>
-                          {formatDate(chat.updatedAt)}
                         </div>
                       )}
                     </div>
@@ -376,6 +521,19 @@ const Chats = () => {
           </div>
         )}
       </div>
+      
+      <style>{`
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.7;
+            transform: scale(1.05);
+          }
+        }
+      `}</style>
     </div>
   );
 };
