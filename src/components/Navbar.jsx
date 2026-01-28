@@ -182,26 +182,6 @@ const Navbar = () => {
 
           {/* Right: Navigation Links */}
           <div className="nav-links">
-            <Link to="/ads" className="nav-link">
-              Ads
-            </Link>
-            
-            {user && (
-              <>
-                <Link to="/favorites" className="nav-link">
-                  Favorites
-                </Link>
-                <Link to="/chats" className="nav-link">
-                  My Conversations
-                  {unread > 0 && (
-                    <span className="nav-badge">
-                      {unread > 99 ? '99+' : String(unread)}
-                    </span>
-                  )}
-                </Link>
-              </>
-            )}
-            
             <ProfileMenu />
           </div>
         </div>
