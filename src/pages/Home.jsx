@@ -79,17 +79,40 @@ const Home = () => {
 
         const arr = Array.isArray(list) ? list : [];
         const normalized = arr
-          .map(c => ({
-            _id: c?._id || c?.id || "",
-            name: c?.name || c?.title || "",
-            slug: (c?.slug || c?.key || c?.name || "").toString().toLowerCase().trim(),
-          }))
-          .filter(c => c._id && c.name);
+          .map(c => {
+            // Generate a fallback ID if none exists
+            const id = c?._id || c?.id || `cat-${c?.slug || c?.name || Math.random()}`;
+            const name = c?.name || c?.title || c?.label || "";
+            const slug = (c?.slug || c?.key || c?.name || "").toString().toLowerCase().trim();
+            
+    return {
+              _id: id,
+              name: name,
+              slug: slug,
+            };
+          })
+          .filter(c => c.name && c.name.trim() !== ""); // Only filter by name, not _id
 
         if (import.meta.env.DEV) console.log("[HOME] categories raw:", raw);
         if (import.meta.env.DEV) console.log("[HOME] categories normalized:", normalized);
 
-        if (mounted) setCats(normalized);
+        // If normalized is empty, use fallback
+        if (mounted) {
+          if (normalized.length > 0) {
+            setCats(normalized);
+          } else {
+            // No categories from API, use fallback
+            const fallback = [
+              { _id: "fallback-automobile", name: "Automobile", slug: "automobile" },
+              { _id: "fallback-imobiliare", name: "Imobiliare", slug: "imobiliare" },
+              { _id: "fallback-electronice", name: "Electronice & Tehnică", slug: "electronice-tehnica" },
+              { _id: "fallback-casa", name: "Casă & Grădină", slug: "casa-gradina" },
+              { _id: "fallback-moda", name: "Modă & Frumusețe", slug: "moda-frumusete" },
+              { _id: "fallback-jobs", name: "Locuri de muncă", slug: "locuri-de-munca" },
+            ];
+            setCats(fallback);
+          }
+        }
       } catch (e) {
         console.error("[HOME] failed to load categories", e);
 
@@ -112,6 +135,7 @@ const Home = () => {
 
   // Build the 6 cards list with smart matching
   const picked = (() => {
+    // If no categories, return empty (fallback will be used)
     if (cats.length === 0) return [];
     
     // try match by slug includes
@@ -135,34 +159,64 @@ const Home = () => {
     if (bySlug.length === 6) return bySlug;
     // If we don't have 6, fill with first available
     const remaining = cats.filter(c => !used.has(c._id));
-    return [...bySlug, ...remaining].slice(0, 6);
+    const result = [...bySlug, ...remaining].slice(0, 6);
+    return result;
+  })();
+
+  // Always ensure we have 6 cards - use fallback if needed
+  const displayCategories = (() => {
+    if (picked.length === 6) return picked;
+    
+    // Use fallback if we don't have enough
+    const fallback = [
+      { _id: "fallback-automobile", name: "Automobile", slug: "automobile" },
+      { _id: "fallback-imobiliare", name: "Imobiliare", slug: "imobiliare" },
+      { _id: "fallback-electronice", name: "Electronice & Tehnică", slug: "electronice-tehnica" },
+      { _id: "fallback-casa", name: "Casă & Grădină", slug: "casa-gradina" },
+      { _id: "fallback-moda", name: "Modă & Frumusețe", slug: "moda-frumusete" },
+      { _id: "fallback-jobs", name: "Locuri de muncă", slug: "locuri-de-munca" },
+    ];
+    
+    // Merge picked with fallback, avoiding duplicates
+    const merged = [...picked];
+    const usedIds = new Set(picked.map(c => c._id));
+    
+    for (const fb of fallback) {
+      if (merged.length >= 6) break;
+      if (!usedIds.has(fb._id)) {
+        merged.push(fb);
+        usedIds.add(fb._id);
+      }
+    }
+    
+    return merged.slice(0, 6);
   })();
 
   // Fetch recommended ads
   useEffect(() => {
     const fetchRecommended = async () => {
-      try {
-        setLoading(true);
+    try {
+      setLoading(true);
         const response = await getAds({ limit: 10, sort: '-createdAt' });
-        const data = response.data;
-        
+      const data = response.data;
+      
         let adsArray = [];
-        if (data?.ads && Array.isArray(data.ads)) {
-          adsArray = data.ads;
-        } else if (data?.data?.ads && Array.isArray(data.data.ads)) {
-          adsArray = data.data.ads;
-        } else if (Array.isArray(data)) {
-          adsArray = data;
-        }
-        
+      if (data?.ads && Array.isArray(data.ads)) {
+        adsArray = data.ads;
+      } else if (data?.data?.ads && Array.isArray(data.data.ads)) {
+        adsArray = data.data.ads;
+      } else if (Array.isArray(data)) {
+        adsArray = data;
+      }
+      
         // Slice to exactly 10 ads
         setRecommendedAds(Array.isArray(adsArray) ? adsArray.slice(0, 10) : []);
-      } catch (err) {
+    } catch (err) {
         console.error('Failed to fetch recommended ads:', err);
         setRecommendedAds([]);
-      } finally {
-        setLoading(false);
-      }
+    } finally {
+      setLoading(false);
+    }
     };
 
     fetchRecommended();
@@ -202,9 +256,9 @@ const Home = () => {
                 <div key={i} className="card card--pad" style={{ height: 200, background: 'var(--surface-2)' }} />
               ))}
             </div>
-          ) : (
+          ) : displayCategories.length > 0 ? (
             <div className="grid grid-3">
-              {picked.map((category) => {
+              {displayCategories.map((category) => {
                 const icon = getCategoryIcon(category.slug);
                 return (
                   <div
@@ -215,8 +269,8 @@ const Home = () => {
                     {icon && (
                       <div className="category-card__icon">
                         {icon}
-                      </div>
-                    )}
+          </div>
+        )}
                     <h3 className="category-card__title">
                       {category.name}
                     </h3>
@@ -225,6 +279,39 @@ const Home = () => {
                     </p>
                   </div>
                 );
+              })}
+            </div>
+          ) : (
+            <div className="grid grid-3">
+              {Array.from({ length: 6 }).map((_, i) => {
+                const fallback = [
+                  { _id: "fallback-automobile", name: "Automobile", slug: "automobile" },
+                  { _id: "fallback-imobiliare", name: "Imobiliare", slug: "imobiliare" },
+                  { _id: "fallback-electronice", name: "Electronice & Tehnică", slug: "electronice-tehnica" },
+                  { _id: "fallback-casa", name: "Casă & Grădină", slug: "casa-gradina" },
+                  { _id: "fallback-moda", name: "Modă & Frumusețe", slug: "moda-frumusete" },
+                  { _id: "fallback-jobs", name: "Locuri de muncă", slug: "locuri-de-munca" },
+                ][i];
+                const icon = getCategoryIcon(fallback.slug);
+                return (
+                  <div
+                    key={fallback._id}
+                    onClick={() => handleCategoryClick(fallback)}
+                    className="category-card card card-hover"
+                  >
+                    {icon && (
+                      <div className="category-card__icon">
+                        {icon}
+          </div>
+        )}
+                    <h3 className="category-card__title">
+                      {fallback.name}
+                    </h3>
+                    <p className="category-card__subtitle">
+                      Explore {fallback.name}
+                    </p>
+                    </div>
+                  );
               })}
             </div>
           )}
@@ -240,7 +327,7 @@ const Home = () => {
                 <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </Link>
-          </div>
+              </div>
 
           {loading ? (
             <div className="grid grid-3">
@@ -251,14 +338,14 @@ const Home = () => {
           ) : recommendedAds.length === 0 ? (
             <div className="text-center py-6">
               <p className="t-muted">No ads available at the moment.</p>
-            </div>
+              </div>
           ) : (
             <div className="grid grid-3">
               {recommendedAds.map(ad => (
-                <AdCard key={ad._id} ad={ad} showFavoriteButton={true} />
-              ))}
-            </div>
-          )}
+                    <AdCard key={ad._id} ad={ad} showFavoriteButton={true} />
+                  ))}
+                  </div>
+                )}
         </section>
       </div>
     </div>
