@@ -123,85 +123,24 @@ const Navbar = () => {
   }, [location.pathname, location.hash, user]);
 
   return (
-    <nav style={{
-      backgroundColor: '#fff',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      padding: '0 24px',
-      position: 'sticky',
-      top: 0,
-      zIndex: 1000,
-    }}>
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        height: '70px',
-      }}>
-        <Link
-          to="/"
-          style={{
-            fontSize: '24px',
-            fontWeight: '700',
-            color: 'var(--green-600)',
-            textDecoration: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          AdsPlatform
-        </Link>
+    <nav className="p-navbar p-glass">
+      <div className="p-container">
+        <div className="p-navbar-inner">
+          <Link to="/" className="nav-link" style={{ fontSize: 20 }}>
+            AdsPlatform
+          </Link>
 
         {/* Search Input */}
         <form
           onSubmit={handleSearchSubmit}
-          style={{
-            flex: 1,
-            maxWidth: '500px',
-            margin: '0 24px',
-            position: 'relative',
-          }}
+          style={{ flex: 1, maxWidth: 520 }}
         >
-          <div style={{
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-          }}>
-            <input
-              type="text"
-              value={navSearch}
-              onChange={(e) => setNavSearch(e.target.value)}
-              placeholder="Caută anunțuri..."
-              style={{
-                width: '100%',
-                padding: '10px 40px 10px 16px',
-                fontSize: '14px',
-                border: '1px solid #ddd',
-                borderRadius: '24px',
-                outline: 'none',
-                transition: 'border-color 0.2s',
-              }}
-              onFocus={(e) => e.currentTarget.style.borderColor = 'var(--green-600)'}
-              onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'}
-            />
+          <div className="u-row" style={{ position: 'relative', gap: 0 }}>
+            <input className="p-input" style={{ paddingRight: 44, borderRadius: 999 }} type="text" value={navSearch} onChange={(e) => setNavSearch(e.target.value)} placeholder="Search ads…" />
             <button
               type="submit"
-              style={{
-                position: 'absolute',
-                right: '8px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#666',
-              }}
+              className="nav-icon-btn"
+              style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', width: 34, height: 34 }}
               aria-label="Search"
             >
               <svg
@@ -221,27 +160,11 @@ const Navbar = () => {
           </div>
         </form>
 
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '16px',
-        }}>
+        <div className="u-row" style={{ gap: 12 }}>
           {user && (
             <Link
               to="/chats"
-              style={{
-                position: 'relative',
-                padding: '8px',
-                color: '#333',
-                textDecoration: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '6px',
-                transition: 'background-color 0.2s',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              className="nav-icon-btn"
               aria-label="Messages"
             >
               <svg
@@ -257,7 +180,7 @@ const Navbar = () => {
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
               {unread > 0 && (
-                <span className="nav-badge">
+                <span className="nav-badge-green">
                   {unread > 99 ? '99+' : String(unread)}
                 </span>
               )}
@@ -268,21 +191,7 @@ const Navbar = () => {
           ) : (
             <>
               <ProfileMenu />
-              <Link
-                to="/register"
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: 'var(--green-600)',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  transition: 'background-color 0.2s',
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--green-700)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--green-600)'}
-              >
+              <Link to="/register" className="btn btn-primary">
                 Sign Up
               </Link>
             </>

@@ -90,174 +90,47 @@ const AdCard = ({ ad, showFavoriteButton = true }) => {
   };
 
   return (
-    <div 
-      onClick={handleCardClick}
-      className="card"
-      style={{
-        cursor: 'pointer',
-        padding: 0,
-        overflow: 'hidden',
-        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-        border: '1px solid #e5e7eb',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-6px)';
-        e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.12)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
-      }}
-    >
-      {coverImage && (
-        <div style={{
-          width: '100%',
-          height: '240px',
-          overflow: 'hidden',
-          backgroundColor: '#f8f9fa',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-        }}>
-          <img
-            src={coverImage}
-            alt={ad.title}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              objectPosition: 'center',
-            }}
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
-          />
+    <div onClick={handleCardClick} className="p-card p-card-hover ad-card" role="button" tabIndex={0}>
+      <div className="ad-card__media">
+        {coverImage ? (
+          <img className="ad-card__img" src={coverImage} alt={ad.title} loading="lazy" />
+        ) : null}
+      </div>
+
+      <div className="ad-card__body">
+        <div className="ad-card__meta">
+          <div className="ad-card__title">{ad.title}</div>
+          {ad.status ? <span className="p-badge">{ad.status}</span> : null}
         </div>
-      )}
-      <div style={{ 
-        padding: '20px', 
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
-        <h3 style={{ 
-          margin: '0 0 16px 0', 
-          fontSize: '19px',
-          fontWeight: '600',
-          color: '#1a1a1a',
-          lineHeight: '1.4',
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-          minHeight: '53px',
-        }}>
-          {ad.title}
-        </h3>
-        <div style={{ 
-          marginBottom: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-          flexWrap: 'wrap',
-        }}>
-          <div style={{ 
-            fontSize: '24px', 
-            fontWeight: '700',
-            color: '#007bff',
-            letterSpacing: '-0.5px',
-          }}>
-            {ad.price} {ad.currency}
-          </div>
-          {ad.status && (
-            <div style={{
-              display: 'inline-block',
-              padding: '6px 12px',
-              backgroundColor: ad.status === 'active' ? '#d1fae5' : ad.status === 'sold' ? '#fee2e2' : '#f3f4f6',
-              color: ad.status === 'active' ? '#065f46' : ad.status === 'sold' ? '#991b1b' : '#374151',
-              borderRadius: '20px',
-              fontSize: '11px',
-              fontWeight: '600',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-            }}>
-              {ad.status}
-            </div>
-          )}
-        </div>
-        <div style={{ 
-          display: 'flex', 
-          gap: '10px', 
-          marginTop: 'auto',
-          paddingTop: '16px',
-          borderTop: '1px solid #f3f4f6',
-        }}>
+
+        <div className="ad-card__meta">
+          <div className="ad-card__price">{ad.price} {ad.currency}</div>
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              navigate(`/ads/${adId}`);
-            }}
-            className="btn-primary"
-            style={{
-              flex: 1,
-              padding: '12px',
-              fontSize: '14px',
-              fontWeight: '600',
-              borderRadius: '8px',
-              transition: 'all 0.2s',
-            }}
+            type="button"
+            className="btn btn-primary"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/ads/${adId}`); }}
+            style={{ padding: '10px 12px' }}
           >
-            View Details
+            Details
           </button>
-          {showFavoriteButton && (
+        </div>
+
+        {showFavoriteButton && (
+          <div className="ad-card__meta">
             <button
+              type="button"
               onClick={handleFavoriteClick}
               disabled={busy || !canFavorite}
-              className={saved ? 'btn-danger' : 'btn-secondary'}
-              style={{
-                padding: '12px 16px',
-                fontSize: '18px',
-                borderRadius: '8px',
-                opacity: (busy || !canFavorite) ? 0.6 : 1,
-                cursor: (busy || !canFavorite) ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-                minWidth: '48px',
-              }}
+              className={`btn ${saved ? 'btn-danger' : 'btn-secondary'}`}
+              style={{ padding: '10px 12px' }}
             >
-              {busy ? '...' : (saved ? '❤️' : '🤍')}
+              {busy ? '...' : (saved ? 'Saved' : 'Save')}
             </button>
-          )}
-        </div>
-        {showFavoriteButton && !canFavorite && (
-          <div style={{
-            color: '#9ca3af',
-            fontSize: '12px',
-            marginTop: '10px',
-            textAlign: 'center',
-            fontStyle: 'italic',
-          }}>
-            Activate ad to save
+            {!canFavorite ? <span className="t-muted" style={{ fontSize: 13 }}>Inactive ad</span> : null}
           </div>
         )}
-        {showFavoriteButton && error && (
-          <div style={{
-            color: '#dc2626',
-            fontSize: '12px',
-            marginTop: '10px',
-            textAlign: 'center',
-            padding: '6px',
-            backgroundColor: '#fef2f2',
-            borderRadius: '6px',
-          }}>
-            {error}
-          </div>
-        )}
+
+        {error ? <div className="t-muted" style={{ color: 'var(--danger)', fontSize: 13 }}>{error}</div> : null}
       </div>
     </div>
   );
