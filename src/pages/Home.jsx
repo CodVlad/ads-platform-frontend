@@ -237,55 +237,143 @@ const Home = () => {
   };
 
   return (
-    <div className="page-container">
-      <div className="container">
-        <div style={{ marginBottom: '32px' }}>
-          <h1 style={{ 
-            fontSize: '2.5rem', 
-            fontWeight: '700', 
-            color: '#1a1a1a',
-            marginBottom: '8px',
+    <div className="page-container" style={{ padding: 0, background: 'linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%)', minHeight: '100vh' }}>
+      <div className="container" style={{ maxWidth: '1400px', padding: '0 20px' }}>
+        {/* Hero Section */}
+        <div style={{ 
+          marginBottom: '48px',
+          padding: '60px 0',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: '24px',
+            padding: '48px 40px',
+            color: '#fff',
+            boxShadow: '0 12px 40px rgba(102, 126, 234, 0.3)',
+            position: 'relative',
+            overflow: 'hidden',
           }}>
-            Browse Ads
-          </h1>
-          <p style={{ 
-            fontSize: '1.1rem', 
-            color: '#666',
-            margin: 0,
-          }}>
-            Discover amazing deals and find what you're looking for
-          </p>
+            {/* Decorative elements */}
+            <div style={{
+              position: 'absolute',
+              top: '-100px',
+              right: '-100px',
+              width: '400px',
+              height: '400px',
+              background: 'rgba(255,255,255,0.1)',
+              borderRadius: '50%',
+              filter: 'blur(80px)',
+            }} />
+            <div style={{
+              position: 'absolute',
+              bottom: '-80px',
+              left: '-80px',
+              width: '300px',
+              height: '300px',
+              background: 'rgba(255,255,255,0.08)',
+              borderRadius: '50%',
+              filter: 'blur(60px)',
+            }} />
+            
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <h1 style={{ 
+                fontSize: '3.5rem', 
+                fontWeight: '800', 
+                color: '#fff',
+                marginBottom: '16px',
+                lineHeight: '1.1',
+                textShadow: '0 2px 20px rgba(0,0,0,0.1)',
+              }}>
+                Discover Amazing Deals
+              </h1>
+              <p style={{ 
+                fontSize: '1.25rem', 
+                color: 'rgba(255,255,255,0.95)',
+                margin: 0,
+                fontWeight: '400',
+                maxWidth: '600px',
+                lineHeight: '1.6',
+              }}>
+                Browse through thousands of listings and find exactly what you're looking for
+              </p>
+            </div>
+          </div>
         </div>
 
         {loading && (
           <div style={{
             textAlign: 'center',
-            padding: '60px 20px',
-            color: '#666',
-            fontSize: '18px',
+            padding: '80px 20px',
+            background: '#fff',
+            borderRadius: '20px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
           }}>
-            <div>Loading ads...</div>
+            <div style={{ 
+              fontSize: '48px', 
+              marginBottom: '20px',
+              animation: 'pulse 1.5s ease-in-out infinite',
+            }}>🔍</div>
+            <div style={{ 
+              color: '#666', 
+              fontSize: '18px',
+              fontWeight: '500',
+            }}>
+              Loading amazing deals...
+            </div>
           </div>
         )}
         
         {error && (
-          <div className="card" style={{
-            backgroundColor: '#fff5f5',
-            border: '1px solid #fed7d7',
-            marginBottom: '24px',
+          <div style={{
+            background: '#fff',
+            borderRadius: '16px',
+            padding: '32px',
+            marginBottom: '32px',
+            border: '2px solid #fed7d7',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
           }}>
             <div style={{ 
               color: '#c53030', 
-              marginBottom: '16px',
-              fontSize: '16px',
-              fontWeight: '500',
+              marginBottom: '20px',
+              fontSize: '18px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
             }}>
+              <span style={{ fontSize: '24px' }}>⚠️</span>
               {error}
             </div>
             <button
               onClick={() => fetchAds({}, pagination.page, pagination.limit)}
               disabled={loading}
-              className="btn-secondary"
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '12px',
+                padding: '12px 24px',
+                fontSize: '15px',
+                fontWeight: '600',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1,
+                transition: 'all 0.2s',
+                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+                }
+              }}
             >
               {loading ? 'Refreshing...' : 'Try Again'}
             </button>
@@ -294,36 +382,64 @@ const Home = () => {
 
         {!loading && !error && (
           <>
-            <FiltersBar
-              key={JSON.stringify(filters)} // Force remount when filters change from URL
-              initialValues={filters}
-              onApply={handleApplyFilters}
-              onReset={handleResetFilters}
-            />
+            <div style={{ marginBottom: '32px' }}>
+              <FiltersBar
+                key={JSON.stringify(filters)}
+                initialValues={filters}
+                onApply={handleApplyFilters}
+                onReset={handleResetFilters}
+              />
+            </div>
+            
+            {/* Results Summary */}
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'space-between',
               gap: '16px', 
-              marginBottom: '24px',
+              marginBottom: '32px',
               flexWrap: 'wrap',
-              padding: '16px',
-              backgroundColor: 'white',
-              borderRadius: '8px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              padding: '20px 24px',
+              background: '#fff',
+              borderRadius: '16px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
             }}>
-              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-                <div>
-                  <span style={{ color: '#666', fontSize: '14px' }}>Results: </span>
-                  <strong style={{ color: '#1a1a1a', fontSize: '16px' }}>
+              <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}>
+                  <span style={{ 
+                    fontSize: '20px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    fontWeight: '700',
+                  }}>
                     {pagination.total || ads.length}
-                  </strong>
+                  </span>
+                  <span style={{ color: '#666', fontSize: '15px', fontWeight: '500' }}>
+                    {pagination.total === 1 ? 'result' : 'results'}
+                  </span>
                 </div>
-                <div>
-                  <span style={{ color: '#666', fontSize: '14px' }}>Page: </span>
-                  <strong style={{ color: '#1a1a1a', fontSize: '16px' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}>
+                  <span style={{ color: '#666', fontSize: '15px', fontWeight: '500' }}>Page</span>
+                  <span style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: '#fff',
+                    padding: '6px 14px',
+                    borderRadius: '10px',
+                    fontSize: '15px',
+                    fontWeight: '700',
+                    boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+                  }}>
                     {pagination.page} / {pagination.pages}
-                  </strong>
+                  </span>
                 </div>
                 {(filters.category || filters.subCategory) && (() => {
                   const category = filters.category ? categories.find(c => c.slug === filters.category) : null;
@@ -338,13 +454,24 @@ const Home = () => {
                   const subCategoryLabel = subCategory?.name || subCategory?.label || filters.subCategory || '';
                   
                   return (
-                    <div>
-                      <span style={{ color: '#666', fontSize: '14px' }}>Filter: </span>
-                      <strong style={{ color: '#007bff', fontSize: '16px' }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}>
+                      <span style={{ color: '#666', fontSize: '15px', fontWeight: '500' }}>Filter:</span>
+                      <span style={{
+                        background: 'rgba(102, 126, 234, 0.1)',
+                        color: '#667eea',
+                        padding: '6px 14px',
+                        borderRadius: '10px',
+                        fontSize: '15px',
+                        fontWeight: '600',
+                      }}>
                         {subCategoryLabel 
                           ? `${categoryLabel} / ${subCategoryLabel}`
                           : categoryLabel}
-                      </strong>
+                      </span>
                     </div>
                   );
                 })()}
@@ -352,66 +479,168 @@ const Home = () => {
               <button
                 onClick={() => fetchAds({}, pagination.page, pagination.limit)}
                 disabled={loading}
-                className="btn-secondary"
-                style={{ fontSize: '14px', padding: '8px 16px' }}
+                style={{
+                  background: 'transparent',
+                  border: '2px solid #e8ecf1',
+                  borderRadius: '12px',
+                  padding: '10px 20px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#667eea',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.currentTarget.style.borderColor = '#667eea';
+                    e.currentTarget.style.background = 'rgba(102, 126, 234, 0.05)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) {
+                    e.currentTarget.style.borderColor = '#e8ecf1';
+                    e.currentTarget.style.background = 'transparent';
+                  }
+                }}
               >
                 🔄 Refresh
               </button>
             </div>
+
+            {/* Ads Grid */}
             {Array.isArray(ads) && ads.length === 0 ? (
-              <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
-                <h3 style={{ color: '#1a1a1a', marginBottom: '8px' }}>Nu s-au găsit rezultate</h3>
-                <p style={{ color: '#666' }}>Încearcă să ajustezi filtrele pentru a vedea mai multe rezultate</p>
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '80px 20px',
+                background: '#fff',
+                borderRadius: '20px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+              }}>
+                <div style={{ 
+                  fontSize: '80px', 
+                  marginBottom: '24px',
+                  opacity: 0.2,
+                }}>🔍</div>
+                <h3 style={{ 
+                  color: '#1a1a1a', 
+                  marginBottom: '12px',
+                  fontSize: '1.75rem',
+                  fontWeight: '600',
+                }}>
+                  No results found
+                </h3>
+                <p style={{ 
+                  color: '#666',
+                  fontSize: '16px',
+                  maxWidth: '400px',
+                  margin: '0 auto',
+                }}>
+                  Try adjusting your filters to see more results
+                </p>
               </div>
             ) : Array.isArray(ads) ? (
               <>
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                  gap: '24px',
-                  marginBottom: '32px',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                  gap: '28px',
+                  marginBottom: '48px',
                 }}>
                   {ads.map((ad) => (
-                    <AdCard key={ad._id} ad={ad} showFavoriteButton={true} />
+                    <div key={ad._id} style={{
+                      transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }}>
+                      <AdCard ad={ad} showFavoriteButton={true} />
+                    </div>
                   ))}
                 </div>
+                
+                {/* Pagination */}
                 {pagination.pages > 1 && (
                   <div style={{ 
                     display: 'flex', 
                     gap: '12px', 
                     justifyContent: 'center', 
                     alignItems: 'center',
-                    marginTop: '32px',
+                    marginTop: '48px',
+                    marginBottom: '32px',
                   }}>
                     <button
                       onClick={() => handlePageChange(pagination.page - 1)}
                       disabled={!pagination.hasPrev || loading}
-                      className="btn-primary"
                       style={{
-                        opacity: !pagination.hasPrev || loading ? 0.5 : 1,
+                        background: !pagination.hasPrev || loading
+                          ? '#e8ecf1'
+                          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: !pagination.hasPrev || loading ? '#999' : '#fff',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '12px 24px',
+                        fontSize: '15px',
+                        fontWeight: '600',
                         cursor: !pagination.hasPrev || loading ? 'not-allowed' : 'pointer',
+                        opacity: !pagination.hasPrev || loading ? 0.5 : 1,
+                        transition: 'all 0.2s',
+                        boxShadow: !pagination.hasPrev || loading ? 'none' : '0 4px 12px rgba(102, 126, 234, 0.3)',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (pagination.hasPrev && !loading) {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (pagination.hasPrev && !loading) {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+                        }
                       }}
                     >
                       ← Previous
                     </button>
-                    <span style={{
-                      padding: '10px 20px',
-                      backgroundColor: '#f8f9fa',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: '#333',
+                    <div style={{
+                      padding: '12px 28px',
+                      background: '#fff',
+                      borderRadius: '12px',
+                      fontSize: '15px',
+                      fontWeight: '600',
+                      color: '#1a1a1a',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                     }}>
                       Page {pagination.page} of {pagination.pages}
-                    </span>
+                    </div>
                     <button
                       onClick={() => handlePageChange(pagination.page + 1)}
                       disabled={!pagination.hasNext || loading}
-                      className="btn-primary"
                       style={{
-                        opacity: !pagination.hasNext || loading ? 0.5 : 1,
+                        background: !pagination.hasNext || loading
+                          ? '#e8ecf1'
+                          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: !pagination.hasNext || loading ? '#999' : '#fff',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '12px 24px',
+                        fontSize: '15px',
+                        fontWeight: '600',
                         cursor: !pagination.hasNext || loading ? 'not-allowed' : 'pointer',
+                        opacity: !pagination.hasNext || loading ? 0.5 : 1,
+                        transition: 'all 0.2s',
+                        boxShadow: !pagination.hasNext || loading ? 'none' : '0 4px 12px rgba(102, 126, 234, 0.3)',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (pagination.hasNext && !loading) {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (pagination.hasNext && !loading) {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+                        }
                       }}
                     >
                       Next →
@@ -423,6 +652,19 @@ const Home = () => {
           </>
         )}
       </div>
+      
+      <style>{`
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.7;
+            transform: scale(1.05);
+          }
+        }
+      `}</style>
     </div>
   );
 };
