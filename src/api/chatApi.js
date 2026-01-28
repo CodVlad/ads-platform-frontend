@@ -9,11 +9,14 @@ import axios from 'axios';
 
 /**
  * Get API base URL from environment
+ * Normalizes to ensure BASE ending with /api exactly once
  * @returns {string}
  */
 const getApiUrl = () => {
-  const envURL = import.meta.env.VITE_API_URL || "http://localhost:5001";
-  return envURL.endsWith('/api') ? envURL : `${envURL.replace(/\/+$/, '')}/api`;
+  const base = import.meta.env.VITE_API_URL || "http://localhost:5001";
+  const normalized = base.replace(/\/+$/, "");
+  const API = normalized.endsWith("/api") ? normalized : `${normalized}/api`;
+  return API;
 };
 
 /**
@@ -51,6 +54,11 @@ export const startChat = async ({ receiverId }) => {
   // Prepare request
   const API_URL = getApiUrl();
   const url = `${API_URL}/chats/start`;
+  
+  // Dev-only log showing URL
+  if (import.meta.env.DEV) {
+    console.log("[CHAT_API] url", url);
+  }
   
   // Payload exactly: { receiverId: receiverIdStr }
   const payload = {
@@ -126,6 +134,11 @@ export const deleteChat = async (chatId) => {
   const API_URL = getApiUrl();
   const url = `${API_URL}/chats/${chatIdStr}`;
 
+  // Dev-only log showing URL
+  if (import.meta.env.DEV) {
+    console.log("[CHAT_API] url", url);
+  }
+
   try {
     const response = await axios.delete(url, {
       headers: {
@@ -159,6 +172,76 @@ export const deleteChat = async (chatId) => {
       error.response?.data?.error || 
       error.message || 
       'Failed to delete chat'
+    );
+    enhancedError.status = error.response?.status;
+    enhancedError.responseData = error.response?.data;
+    throw enhancedError;
+  }
+};
+
+/**
+ * Get a single chat by ID
+ * @param {string} chatId - Chat ID (Mongo ObjectId)
+ * @returns {Promise<any>}
+ * @throws {Error} If validation fails or request fails
+ */
+export const getChat = async (chatId) => {
+  // Validate chatId
+  const chatIdStr = String(chatId || '').trim();
+  if (!chatId || chatIdStr === '' || ['null', 'undefined'].includes(chatIdStr)) {
+    throw new Error('Chat ID is required');
+  }
+
+  // HARD GUARD: never call protected endpoint without token
+  const token = getToken();
+  if (!token) {
+    const error = new Error('Authentication token is required');
+    // Silent - no console spam
+    throw error;
+  }
+
+  // Prepare request
+  const API_URL = getApiUrl();
+  const url = `${API_URL}/chats/${chatIdStr}`;
+
+  // Dev-only log showing URL
+  if (import.meta.env.DEV) {
+    console.log("[CHAT_API] url", url);
+  }
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    // Log successful response
+    if (import.meta.env.DEV) {
+      console.log('[CHAT_API] Get chat success:', {
+        status: response.status,
+        data: response.data
+      });
+    }
+
+    return response.data;
+  } catch (error) {
+    // Logging similar to startChat
+    console.error('[CHAT_API] Get chat status:', error.response?.status);
+    console.error('[CHAT_API] Get chat response:', error.response?.data);
+    
+    // Log detailed error information
+    if (error.response?.data) {
+      console.error('[CHAT_API] Backend error response (full):', JSON.stringify(error.response.data, null, 2));
+    }
+
+    // Re-throw with more context
+    const enhancedError = new Error(
+      error.response?.data?.message || 
+      error.response?.data?.error || 
+      error.message || 
+      'Failed to get chat'
     );
     enhancedError.status = error.response?.status;
     enhancedError.responseData = error.response?.data;

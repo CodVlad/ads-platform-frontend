@@ -25,7 +25,14 @@ export const getChats = () => {
 };
 
 export const getMessages = (conversationId) => {
-  return api.get(`/chats/${conversationId}/messages`);
+  const url = `/chats/${conversationId}/messages`;
+  
+  // Dev-only log showing URL
+  if (import.meta.env.DEV) {
+    console.log("[CHAT_API] url", url);
+  }
+  
+  return api.get(url);
 };
 
 export const sendMessage = (conversationId, text) => {
