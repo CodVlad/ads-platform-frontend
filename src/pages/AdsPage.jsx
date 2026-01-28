@@ -65,23 +65,41 @@ const AdsPage = () => {
     });
   }
 
-  // Fetch ads from API (without filtering)
+  // Fetch ads from API
   const fetchAds = useCallback(async () => {
     try {
       setLoading(true);
+      
+      // When filtering by category, fetch ALL ads for client-side filtering
+      // This ensures we get all ads from the category, not just one page
+      const shouldFetchAll = categoryIdParam || categorySlugParam;
+      const fetchLimit = shouldFetchAll ? 10000 : limit; // Very large limit to get all ads when filtering
+      const fetchPage = shouldFetchAll ? 1 : page; // Always page 1 when fetching all
+      
       const params = {
-        page,
-        limit,
+        page: fetchPage,
+        limit: fetchLimit,
         sort,
       };
       
       // Try server-side filtering first (if API supports it)
-      if (categoryIdParam) params.categoryId = categoryIdParam;
-      if (categorySlugParam) params.category = categorySlugParam;
-      if (categorySlugParam) params.categorySlug = categorySlugParam;
-      if (searchParam) params.search = searchParam;
-      if (minPrice) params.minPrice = minPrice;
-      if (maxPrice) params.maxPrice = maxPrice;
+      // But we'll also do client-side filtering as fallback
+      if (categoryIdParam) {
+        params.categoryId = categoryIdParam;
+      }
+      if (categorySlugParam) {
+        params.category = categorySlugParam;
+        params.categorySlug = categorySlugParam;
+      }
+      if (searchParam) {
+        params.search = searchParam;
+      }
+      if (minPrice) {
+        params.minPrice = minPrice;
+      }
+      if (maxPrice) {
+        params.maxPrice = maxPrice;
+      }
 
       const response = await getAds(params);
       const data = response.data;
@@ -97,16 +115,28 @@ const AdsPage = () => {
 
       const fetchedAds = Array.isArray(adsArray) ? adsArray : [];
       
+      if (import.meta.env.DEV) {
+        console.log('[AdsPage] Fetched ads:', {
+          count: fetchedAds.length,
+          categoryIdParam,
+          categorySlugParam,
+          shouldFetchAll,
+          sampleAd: fetchedAds[0],
+        });
+      }
+      
       // Store all fetched ads (DO NOT filter here)
       setAllAds(fetchedAds);
       
+      // If we fetched all ads for filtering, pagination info might not be accurate
+      // So we'll calculate it from filtered results later
       const paginationData = data?.pagination || {};
       setPagination({
-        page: paginationData.page || page,
-        pages: paginationData.pages || 1,
+        page: shouldFetchAll ? 1 : (paginationData.page || page),
+        pages: shouldFetchAll ? 1 : (paginationData.pages || 1),
         total: paginationData.total || fetchedAds.length,
-        hasNext: paginationData.hasNext || false,
-        hasPrev: paginationData.hasPrev || false,
+        hasNext: shouldFetchAll ? false : (paginationData.hasNext || false),
+        hasPrev: shouldFetchAll ? false : (paginationData.hasPrev || false),
       });
     } catch (err) {
       console.error('Failed to fetch ads:', err);
@@ -129,13 +159,23 @@ const AdsPage = () => {
     if (categoryIdParam) {
       filtered = filtered.filter((ad) => {
         const adCategoryId = getAdCategoryId(ad);
-        return adCategoryId === categoryIdParam;
+        // Also check categoryId field directly
+        const directCategoryId = String(ad?.categoryId || '');
+        return adCategoryId === categoryIdParam || directCategoryId === categoryIdParam;
       });
     } else if (categorySlugParam) {
-      const slug = categorySlugParam.toLowerCase();
+      const slug = categorySlugParam.toLowerCase().trim();
       filtered = filtered.filter((ad) => {
         const adCategorySlug = getAdCategorySlug(ad);
-        return adCategorySlug === slug;
+        // Also check categorySlug field directly
+        const directCategorySlug = String(ad?.categorySlug || '').toLowerCase().trim();
+        // Also check if category name matches
+        const categoryName = ad?.category?.name ? String(ad.category.name).toLowerCase().trim() : '';
+        return adCategorySlug === slug || 
+               directCategorySlug === slug || 
+               categoryName === slug ||
+               (adCategorySlug && adCategorySlug.includes(slug)) ||
+               (directCategorySlug && directCategorySlug.includes(slug));
       });
     }
 
@@ -148,7 +188,32 @@ const AdsPage = () => {
       });
     }
 
+    // Update pagination total based on filtered results
+    if (categoryIdParam || categorySlugParam || searchParam) {
+      setPagination(prev => ({
+        ...prev,
+        total: filtered.length,
+      }));
+    }
+
     setVisibleAds(filtered);
+    
+    if (import.meta.env.DEV) {
+      console.log('[AdsPage] Filtering:', {
+        totalAds: allAds.length,
+        filteredAds: filtered.length,
+        categoryIdParam,
+        categorySlugParam,
+        searchParam,
+        sampleAd: allAds[0] ? {
+          category: allAds[0].category,
+          categoryId: allAds[0].categoryId,
+          categorySlug: allAds[0].categorySlug,
+          extractedId: getAdCategoryId(allAds[0]),
+          extractedSlug: getAdCategorySlug(allAds[0]),
+        } : null,
+      });
+    }
   }, [allAds, categoryIdParam, categorySlugParam, searchParam]);
 
   const handleFilterChange = (key, value) => {
