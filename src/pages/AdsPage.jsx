@@ -1,16 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getAds } from '../api/endpoints';
+import useCategories from '../hooks/useCategories';
 import AdCard from '../components/AdCard';
-
-const CATEGORIES = [
-  { name: 'Automobile', slug: 'automobile' },
-  { name: 'Imobiliare', slug: 'imobiliare' },
-  { name: 'Electronice & Tehnică', slug: 'electronice' },
-  { name: 'Casă & Grădină', slug: 'casa-gradina' },
-  { name: 'Modă & Frumusețe', slug: 'moda-frumusete' },
-  { name: 'Locuri de muncă', slug: 'locuri-de-munca' },
-];
 
 const SORT_OPTIONS = [
   { value: '-createdAt', label: 'Newest First' },
@@ -18,8 +10,30 @@ const SORT_OPTIONS = [
   { value: '-price', label: 'Price: High to Low' },
 ];
 
+// Helper to extract categoryId from ad
+const getAdCategoryId = (ad) => {
+  const c = ad?.category;
+  if (!c) return '';
+  // if category is ObjectId string
+  if (typeof c === 'string') return c;
+  // if category is populated object
+  if (typeof c === 'object') return String(c._id || c.id || '');
+  return '';
+};
+
+// Helper to extract category slug from ad
+const getAdCategorySlug = (ad) => {
+  const c = ad?.category;
+  if (!c) return '';
+  if (typeof c === 'object') return String(c.slug || c.name || '').toLowerCase().trim();
+  // if backend stores slug string directly (unlikely but handle it)
+  if (typeof c === 'string') return '';
+  return '';
+};
+
 const AdsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { categories } = useCategories();
   const [loading, setLoading] = useState(true);
   const [allAds, setAllAds] = useState([]);
   const [visibleAds, setVisibleAds] = useState([]);
@@ -30,10 +44,10 @@ const AdsPage = () => {
     hasNext: false,
     hasPrev: false,
   });
-  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Read filters from URL
-  const categoryParam = (searchParams.get('category') || '').trim();
+  const categoryIdParam = (searchParams.get('categoryId') || '').trim();
+  const categorySlugParam = (searchParams.get('category') || '').trim();
   const searchParam = (searchParams.get('search') || '').trim();
   const sort = searchParams.get('sort') || '-createdAt';
   const page = parseInt(searchParams.get('page') || '1', 10);
@@ -43,7 +57,12 @@ const AdsPage = () => {
 
   // DEV logs
   if (import.meta.env.DEV) {
-    console.log({ categoryParam, searchParam });
+    console.log('FILTER', { 
+      categoryIdParam, 
+      categorySlugParam, 
+      searchParam, 
+      sampleAd: allAds[0] 
+    });
   }
 
   // Fetch ads from API (without filtering)
@@ -57,8 +76,9 @@ const AdsPage = () => {
       };
       
       // Try server-side filtering first (if API supports it)
-      if (categoryParam) params.category = categoryParam;
-      if (categoryParam) params.categorySlug = categoryParam;
+      if (categoryIdParam) params.categoryId = categoryIdParam;
+      if (categorySlugParam) params.category = categorySlugParam;
+      if (categorySlugParam) params.categorySlug = categorySlugParam;
       if (searchParam) params.search = searchParam;
       if (minPrice) params.minPrice = minPrice;
       if (maxPrice) params.maxPrice = maxPrice;
@@ -94,7 +114,7 @@ const AdsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, sort, minPrice, maxPrice, categoryParam, searchParam]);
+  }, [page, limit, sort, minPrice, maxPrice, categoryIdParam, categorySlugParam, searchParam]);
 
   // Fetch ads when params change
   useEffect(() => {
@@ -105,32 +125,17 @@ const AdsPage = () => {
   useEffect(() => {
     let filtered = [...allAds];
 
-    // Filter by category
-    if (categoryParam) {
-      const categorySlug = categoryParam.toLowerCase();
+    // Prefer categoryId over slug
+    if (categoryIdParam) {
       filtered = filtered.filter((ad) => {
-        // Support both string and object category
-        const adCategory = ad?.category;
-        const adCategorySlug = ad?.categorySlug || ad?.category?.slug;
-        
-        // Check direct slug match
-        if (adCategorySlug && String(adCategorySlug).toLowerCase().trim() === categorySlug) {
-          return true;
-        }
-        
-        // Check if category object has slug
-        if (adCategory && typeof adCategory === 'object' && adCategory.slug) {
-          if (String(adCategory.slug).toLowerCase().trim() === categorySlug) {
-            return true;
-          }
-        }
-        
-        // Check if category is a string that matches
-        if (adCategory && typeof adCategory === 'string' && String(adCategory).toLowerCase().trim() === categorySlug) {
-          return true;
-        }
-        
-        return false;
+        const adCategoryId = getAdCategoryId(ad);
+        return adCategoryId === categoryIdParam;
+      });
+    } else if (categorySlugParam) {
+      const slug = categorySlugParam.toLowerCase();
+      filtered = filtered.filter((ad) => {
+        const adCategorySlug = getAdCategorySlug(ad);
+        return adCategorySlug === slug;
       });
     }
 
@@ -144,7 +149,7 @@ const AdsPage = () => {
     }
 
     setVisibleAds(filtered);
-  }, [allAds, categoryParam, searchParam]);
+  }, [allAds, categoryIdParam, categorySlugParam, searchParam]);
 
   const handleFilterChange = (key, value) => {
     const newParams = new URLSearchParams(searchParams);
@@ -159,6 +164,7 @@ const AdsPage = () => {
 
   const clearCategory = () => {
     const next = new URLSearchParams(searchParams);
+    next.delete('categoryId');
     next.delete('category');
     next.delete('page');
     setSearchParams(next);
@@ -179,7 +185,13 @@ const AdsPage = () => {
     setSearchParams(newParams);
   };
 
-  const selectedCategoryName = categoryParam ? CATEGORIES.find(c => c.slug === categoryParam)?.name : null;
+  // Find selected category name from categories list
+  const selectedCategory = categoryIdParam 
+    ? categories.find(c => (c._id || c.id) === categoryIdParam)
+    : categorySlugParam
+    ? categories.find(c => (c.slug || '').toLowerCase() === categorySlugParam.toLowerCase())
+    : null;
+  const selectedCategoryName = selectedCategory?.name || selectedCategory?.label || null;
 
   return (
     <div className="page">
@@ -198,11 +210,11 @@ const AdsPage = () => {
           </div>
 
           {/* Filter Pills */}
-          {(categoryParam || searchParam) && (
+          {(categoryIdParam || categorySlugParam || searchParam) && (
             <div className="flex items-center gap-2 flex-wrap mb-6">
-              {categoryParam && (
+              {(categoryIdParam || categorySlugParam) && (
                 <span className="pill">
-                  Category: {selectedCategoryName || categoryParam}
+                  Category: {selectedCategoryName || categorySlugParam || categoryIdParam}
                   <button
                     type="button"
                     onClick={clearCategory}
@@ -243,14 +255,44 @@ const AdsPage = () => {
               <div>
                 <label className="t-small t-bold mb-2 block">Category</label>
                 <select
-                  value={categoryParam}
-                  onChange={(e) => handleFilterChange('category', e.target.value)}
+                  value={categoryIdParam || categorySlugParam || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value) {
+                      const selectedCat = categories.find(c => (c._id || c.id) === value || (c.slug || '').toLowerCase() === value.toLowerCase());
+                      if (selectedCat) {
+                        const catId = selectedCat._id || selectedCat.id || '';
+                        const catSlug = (selectedCat.slug || '').trim();
+                        if (catId) {
+                          handleFilterChange('categoryId', catId);
+                          if (catSlug) {
+                            const newParams = new URLSearchParams(searchParams);
+                            newParams.set('categoryId', catId);
+                            newParams.set('category', catSlug);
+                            newParams.delete('page');
+                            setSearchParams(newParams);
+                          }
+                        } else if (catSlug) {
+                          handleFilterChange('category', catSlug);
+                        }
+                      }
+                    } else {
+                      clearCategory();
+                    }
+                  }}
                   className="input"
                 >
                   <option value="">All Categories</option>
-                  {CATEGORIES.map(cat => (
-                    <option key={cat.slug} value={cat.slug}>{cat.name}</option>
-                  ))}
+                  {categories.map(cat => {
+                    const catId = cat._id || cat.id || '';
+                    const catSlug = (cat.slug || '').trim();
+                    const value = catId || catSlug;
+                    return (
+                      <option key={catId || catSlug} value={value}>
+                        {cat.name || cat.label}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -301,12 +343,12 @@ const AdsPage = () => {
               <div className="card card--pad text-center py-6">
                 <h3 className="t-h3 mb-2">No listings found</h3>
                 <p className="t-body t-muted mb-4">
-                  {categoryParam || searchParam 
+                  {(categoryIdParam || categorySlugParam || searchParam)
                     ? 'Try adjusting your filters or search terms'
                     : 'No ads available at the moment'
                   }
                 </p>
-                {(categoryParam || searchParam) && (
+                {(categoryIdParam || categorySlugParam || searchParam) && (
                   <button className="btn btn-secondary" onClick={clearAll}>
                     Clear all filters
                   </button>
