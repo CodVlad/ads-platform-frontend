@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getAds } from '../api/endpoints';
+import { getRecommendedAds } from '../api/endpoints';
 import AdCard from '../components/AdCard';
 
 const CATEGORIES = [
@@ -24,8 +24,8 @@ const CATEGORIES = [
     ),
   },
   {
-    name: 'Electronice și Tehnică',
-    slug: 'electronice-si-tehnica',
+    name: 'Electronice & Tehnică',
+    slug: 'electronice',
     icon: (
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
@@ -34,8 +34,8 @@ const CATEGORIES = [
     ),
   },
   {
-    name: 'Casă și Grădină',
-    slug: 'casa-si-gradina',
+    name: 'Casă & Grădină',
+    slug: 'casa-gradina',
     icon: (
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -45,8 +45,8 @@ const CATEGORIES = [
     ),
   },
   {
-    name: 'Modă și Frumusețe',
-    slug: 'moda-si-frumusete',
+    name: 'Modă & Frumusețe',
+    slug: 'moda-frumusete',
     icon: (
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M20.84 4.61C20.3292 4.099 19.7228 3.69364 19.0554 3.41708C18.3879 3.14052 17.6725 2.99817 16.95 2.99817C16.2275 2.99817 15.5121 3.14052 14.8446 3.41708C14.1772 3.69364 13.5708 4.099 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.57831 8.50903 2.99871 7.05 2.99871C5.59096 2.99871 4.19169 3.57831 3.16 4.61C2.1283 5.64169 1.54871 7.04097 1.54871 8.5C1.54871 9.95903 2.1283 11.3583 3.16 12.39L4.22 13.45L12 21.23L19.78 13.45L20.84 12.39C21.351 11.8792 21.7564 11.2728 22.0329 10.6054C22.3095 9.93789 22.4518 9.22248 22.4518 8.5C22.4518 7.77752 22.3095 7.0621 22.0329 6.39464C21.7564 5.72718 21.351 5.12075 20.84 4.61Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -55,7 +55,7 @@ const CATEGORIES = [
   },
   {
     name: 'Locuri de muncă',
-    slug: 'locuri-de-munca',
+    slug: 'joburi',
     icon: (
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
@@ -70,12 +70,19 @@ const Home = () => {
   const [recommendedAds, setRecommendedAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ active: 0, newToday: 0 });
+  const [search, setSearch] = useState('');
+
+  const categorySlugToLabel = useMemo(() => {
+    const map = new Map();
+    for (const c of CATEGORIES) map.set(c.slug, c.name);
+    return map;
+  }, []);
 
   useEffect(() => {
     const fetchRecommended = async () => {
       try {
         setLoading(true);
-        const response = await getAds({ limit: 10, sort: 'newest' });
+        const response = await getRecommendedAds(10);
         const data = response.data;
         
         let adsArray = [];
@@ -87,12 +94,12 @@ const Home = () => {
           adsArray = data;
         }
 
-        setRecommendedAds(Array.isArray(adsArray) ? adsArray : []);
+        setRecommendedAds(Array.isArray(adsArray) ? adsArray.slice(0, 10) : []);
         
-        // Mock stats (replace with actual API call if available)
+        // Basic stats derived from response (fallbacks)
         setStats({
           active: data?.pagination?.total || adsArray.length || 0,
-          newToday: Math.floor(Math.random() * 50) + 10,
+          newToday: Array.isArray(adsArray) ? Math.min(adsArray.length, 10) : 0,
         });
       } catch (err) {
         console.error('Failed to fetch recommended ads:', err);
@@ -109,95 +116,68 @@ const Home = () => {
     navigate(`/ads?category=${slug}`);
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const term = String(search || '').trim();
+    if (!term) return;
+    navigate(`/ads?search=${encodeURIComponent(term)}`);
+  };
+
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       {/* Hero Section */}
-      <section style={{
-        background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
-        padding: '80px 0',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        <div className="container" style={{ maxWidth: '1400px', position: 'relative', zIndex: 1 }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '48px',
-            alignItems: 'center',
-          }}
-          className="hero-grid"
+      <section style={{ padding: '56px 0 28px' }}>
+        <div className="container" style={{ maxWidth: '1400px' }}>
+          <div
+            className="p-card"
+            style={{
+              padding: '42px',
+              borderRadius: '22px',
+              background:
+                'radial-gradient(900px circle at 20% 10%, rgba(73,91,74,.18), transparent 55%), linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.78))',
+              boxShadow: 'var(--shadow-2)',
+            }}
           >
-            <div>
-              <h1 style={{
-                fontSize: '3.5rem',
-                fontWeight: '800',
-                color: 'var(--text)',
-                marginBottom: '24px',
-                lineHeight: '1.1',
-              }}>
-                Find what you need.<br />
-                Sell what you don't.
-              </h1>
-              <p style={{
-                fontSize: '1.25rem',
-                color: 'var(--muted)',
-                marginBottom: '32px',
-                lineHeight: '1.6',
-              }}>
-                Discover amazing deals and connect with buyers and sellers in your community.
-              </p>
-              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                <Link to="/ads" className="btn-primary" style={{ textDecoration: 'none' }}>
-                  Browse Ads
-                </Link>
-                <Link to="/create" className="btn-ghost" style={{ textDecoration: 'none' }}>
-                  Post an Ad
-                </Link>
-              </div>
-            </div>
-            
-            {/* Stats Panel */}
-            <div style={{
-              background: 'var(--card)',
-              borderRadius: '20px',
-              padding: '32px',
-              boxShadow: '0 8px 32px rgba(16, 185, 129, 0.15)',
-              border: '2px solid rgba(16, 185, 129, 0.1)',
-            }}>
-              <h3 style={{
-                margin: '0 0 24px 0',
-                fontSize: '1.25rem',
-                fontWeight: '700',
-                color: 'var(--text)',
-              }}>
-                Marketplace Stats
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div>
-                  <div style={{
-                    fontSize: '2rem',
-                    fontWeight: '800',
-                    color: 'var(--green-600)',
-                    marginBottom: '4px',
-                  }}>
-                    {stats.active.toLocaleString()}
-                  </div>
-                  <div style={{ color: 'var(--muted)', fontSize: '14px', fontWeight: '500' }}>
-                    Active Ads
-                  </div>
+            <div className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1.25fr .75fr', gap: 28 }}>
+              <div>
+                <div className="t-h1" style={{ color: 'var(--text)', marginBottom: 14 }}>
+                  Find what you need. Sell what you don’t.
                 </div>
-                <div>
-                  <div style={{
-                    fontSize: '2rem',
-                    fontWeight: '800',
-                    color: 'var(--green-600)',
-                    marginBottom: '4px',
-                  }}>
-                    {stats.newToday}+
-                  </div>
-                  <div style={{ color: 'var(--muted)', fontSize: '14px', fontWeight: '500' }}>
-                    New Today
-                  </div>
+                <div className="t-lead" style={{ marginBottom: 22 }}>
+                  A clean marketplace experience for modern listings — fast search, clear filters, and premium presentation.
+                </div>
+
+                <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 18 }}>
+                  <input
+                    className="p-input"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search ads…"
+                    style={{ flex: 1, minWidth: 240 }}
+                  />
+                  <button type="submit" className="btn btn-primary">
+                    Search
+                  </button>
+                </form>
+
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <Link to="/ads" className="btn btn-primary">
+                    Browse Ads
+                  </Link>
+                  <Link to="/create" className="btn btn-secondary">
+                    Post an Ad
+                  </Link>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gap: 12 }}>
+                <div className="p-card" style={{ padding: 18, borderRadius: 18, background: 'rgba(255,255,255,0.75)' }}>
+                  <div style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 650, marginBottom: 6 }}>Active ads</div>
+                  <div style={{ fontSize: 28, fontWeight: 850, color: 'var(--green-600)' }}>{stats.active.toLocaleString()}</div>
+                </div>
+                <div className="p-card" style={{ padding: 18, borderRadius: 18, background: 'rgba(255,255,255,0.75)' }}>
+                  <div style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 650, marginBottom: 6 }}>New today</div>
+                  <div style={{ fontSize: 28, fontWeight: 850, color: 'var(--green-600)' }}>{stats.newToday}</div>
                 </div>
               </div>
             </div>
@@ -206,17 +186,14 @@ const Home = () => {
       </section>
 
       {/* Category Grid */}
-      <section style={{ padding: '80px 0', background: 'var(--bg)' }}>
+      <section style={{ padding: '28px 0 10px' }}>
         <div className="container" style={{ maxWidth: '1400px' }}>
-          <h2 style={{
-            fontSize: '2.5rem',
-            fontWeight: '700',
-            color: 'var(--text)',
-            marginBottom: '48px',
-            textAlign: 'center',
-          }}>
-            Browse by Category
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.01em' }}>Categories</h2>
+              <div style={{ color: 'var(--muted)', marginTop: 6 }}>Jump directly to a filtered listing.</div>
+            </div>
+          </div>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
@@ -229,24 +206,24 @@ const Home = () => {
                 key={category.slug}
                 onClick={() => handleCategoryClick(category.slug)}
                 style={{
-                  background: 'var(--card)',
+                  background: 'var(--card-solid)',
                   borderRadius: '20px',
-                  padding: '32px',
+                  padding: '22px',
                   textAlign: 'center',
                   cursor: 'pointer',
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  border: '2px solid transparent',
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                  border: '1px solid var(--border)',
+                  boxShadow: 'var(--shadow-1)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-8px)';
-                  e.currentTarget.style.borderColor = 'var(--green-500)';
-                  e.currentTarget.style.boxShadow = '0 8px 24px var(--green-glow)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.borderColor = 'rgba(73, 91, 74, 0.40)';
+                  e.currentTarget.style.boxShadow = '0 10px 26px var(--green-glow)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.borderColor = 'transparent';
-                  e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)';
+                  e.currentTarget.style.borderColor = 'var(--border)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-1)';
                 }}
               >
                 <div style={{
@@ -265,6 +242,9 @@ const Home = () => {
                 }}>
                   {category.name}
                 </h3>
+                <div style={{ marginTop: 8, fontSize: 13, color: 'var(--muted)' }}>
+                  Explore {categorySlugToLabel.get(category.slug) || category.name}
+                </div>
               </div>
             ))}
           </div>
@@ -272,7 +252,7 @@ const Home = () => {
       </section>
 
       {/* Recommended Ads */}
-      <section style={{ padding: '80px 0', background: 'var(--bg)' }}>
+      <section style={{ padding: '36px 0 70px' }}>
         <div className="container" style={{ maxWidth: '1400px' }}>
           <div style={{
             display: 'flex',
@@ -281,8 +261,8 @@ const Home = () => {
             marginBottom: '32px',
           }}>
             <h2 style={{
-              fontSize: '2.5rem',
-              fontWeight: '700',
+              fontSize: '1.75rem',
+              fontWeight: '800',
               color: 'var(--text)',
               margin: 0,
             }}>
@@ -314,8 +294,10 @@ const Home = () => {
           </div>
 
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <p style={{ color: 'var(--muted)' }}>Loading recommended ads...</p>
+            <div className="recommended-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="p-card" style={{ height: 240, borderRadius: 18, background: 'rgba(255,255,255,0.75)' }} />
+              ))}
             </div>
           ) : recommendedAds.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
@@ -324,7 +306,7 @@ const Home = () => {
           ) : (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
+              gridTemplateColumns: 'repeat(3, 1fr)',
               gap: '24px',
             }}
             className="recommended-grid"

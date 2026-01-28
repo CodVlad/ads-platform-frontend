@@ -1,28 +1,28 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getAds } from '../api/endpoints';
 import AdCard from '../components/AdCard';
 
 const CATEGORIES = [
   { name: 'Automobile', slug: 'automobile' },
   { name: 'Imobiliare', slug: 'imobiliare' },
-  { name: 'Electronice și Tehnică', slug: 'electronice-si-tehnica' },
-  { name: 'Casă și Grădină', slug: 'casa-si-gradina' },
-  { name: 'Modă și Frumusețe', slug: 'moda-si-frumusete' },
-  { name: 'Locuri de muncă', slug: 'locuri-de-munca' },
+  { name: 'Electronice & Tehnică', slug: 'electronice' },
+  { name: 'Casă & Grădină', slug: 'casa-gradina' },
+  { name: 'Modă & Frumusețe', slug: 'moda-frumusete' },
+  { name: 'Locuri de muncă', slug: 'joburi' },
 ];
 
 const SORT_OPTIONS = [
-  { value: 'newest', label: 'Newest First' },
-  { value: 'price_asc', label: 'Price: Low to High' },
-  { value: 'price_desc', label: 'Price: High to Low' },
+  { value: '-createdAt', label: 'Newest First' },
+  { value: 'price', label: 'Price: Low to High' },
+  { value: '-price', label: 'Price: High to Low' },
 ];
 
 const AdsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [ads, setAds] = useState([]);
+  const [searchDraft, setSearchDraft] = useState('');
   const [pagination, setPagination] = useState({
     page: 1,
     pages: 1,
@@ -34,21 +34,29 @@ const AdsPage = () => {
 
   // Read filters from URL
   const category = searchParams.get('category') || '';
-  const sort = searchParams.get('sort') || 'newest';
+  const search = searchParams.get('search') || '';
+  const sort = searchParams.get('sort') || '-createdAt';
   const page = parseInt(searchParams.get('page') || '1', 10);
   const minPrice = searchParams.get('minPrice') || '';
   const maxPrice = searchParams.get('maxPrice') || '';
+
+  useEffect(() => {
+    setSearchDraft(search);
+  }, [search]);
+
+  const normalizedSearch = useMemo(() => String(search || '').trim().toLowerCase(), [search]);
 
   const fetchAds = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
         page,
-        limit: 12,
+        limit: 20,
         sort,
       };
       
       if (category) params.category = category;
+      if (search) params.search = search;
       if (minPrice) params.minPrice = minPrice;
       if (maxPrice) params.maxPrice = maxPrice;
 
@@ -64,7 +72,16 @@ const AdsPage = () => {
         adsArray = data;
       }
 
-      setAds(Array.isArray(adsArray) ? adsArray : []);
+      let finalAds = Array.isArray(adsArray) ? adsArray : [];
+      // Fallback: ensure title contains search term (case-insensitive) even if backend doesn't filter
+      if (normalizedSearch) {
+        finalAds = finalAds.filter((ad) => {
+          const title = String(ad?.title || ad?.name || '').toLowerCase();
+          return title.includes(normalizedSearch);
+        });
+      }
+
+      setAds(finalAds);
       
       const paginationData = data?.pagination || {};
       setPagination({
@@ -80,7 +97,7 @@ const AdsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [category, sort, page, minPrice, maxPrice]);
+  }, [category, search, sort, page, minPrice, maxPrice, normalizedSearch]);
 
   useEffect(() => {
     fetchAds();
@@ -95,6 +112,33 @@ const AdsPage = () => {
     }
     newParams.delete('page'); // Reset to page 1 on filter change
     setSearchParams(newParams);
+  };
+
+  const clearCategory = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('category');
+    next.delete('page');
+    setSearchParams(next);
+  };
+
+  const clearSearch = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('search');
+    next.delete('page');
+    setSearchParams(next);
+  };
+
+  const clearAll = () => setSearchParams({});
+
+  const applySearch = (e) => {
+    e.preventDefault();
+    const q = String(searchDraft || '').trim();
+    if (!q) {
+      // If cleared, remove search param
+      clearSearch();
+      return;
+    }
+    handleFilterChange('search', q);
   };
 
   const handlePageChange = (newPage) => {
@@ -121,6 +165,37 @@ const AdsPage = () => {
       }}>
         Filters
       </h3>
+
+      <form onSubmit={applySearch} style={{ marginBottom: '24px' }}>
+        <label style={{
+          display: 'block',
+          marginBottom: '8px',
+          fontSize: '14px',
+          fontWeight: '600',
+          color: 'var(--text)',
+        }}>
+          Search
+        </label>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <input
+            className="p-input"
+            value={searchDraft}
+            onChange={(e) => setSearchDraft(e.target.value)}
+            placeholder="e.g. iphone, bmw…"
+            style={{ flex: 1 }}
+          />
+          <button type="submit" className="btn btn-primary" style={{ padding: '10px 14px' }}>
+            Apply
+          </button>
+        </div>
+        {search && (
+          <div style={{ marginTop: 10 }}>
+            <button type="button" className="btn btn-secondary" style={{ padding: '8px 12px' }} onClick={clearSearch}>
+              Clear search
+            </button>
+          </div>
+        )}
+      </form>
 
       <div style={{ marginBottom: '24px' }}>
         <label style={{
@@ -232,6 +307,41 @@ const AdsPage = () => {
       padding: '32px 0',
     }}>
       <div className="container" style={{ maxWidth: '1400px' }}>
+        {/* Filter pills */}
+        {(category || search) && (
+          <div style={{ marginBottom: 18, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            {category && (
+              <span className="p-badge" style={{ gap: 8 }}>
+                Category: {CATEGORIES.find(c => c.slug === category)?.name || category}
+                <button
+                  type="button"
+                  onClick={clearCategory}
+                  style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit', fontWeight: 900 }}
+                  aria-label="Clear category"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {search && (
+              <span className="p-badge" style={{ gap: 8 }}>
+                Search: “{search}”
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit', fontWeight: 900 }}
+                  aria-label="Clear search"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            <button className="btn btn-secondary" onClick={clearAll} style={{ padding: '8px 12px' }}>
+              Clear all
+            </button>
+          </div>
+        )}
+
         {/* Mobile Filter Toggle */}
         <div style={{
           display: 'none',

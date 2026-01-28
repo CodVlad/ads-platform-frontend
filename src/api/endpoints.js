@@ -20,6 +20,10 @@ export const resetPassword = (token, data) => {
 // ADS endpoints (public)
 export const getAds = (params = {}) => api.get("/ads", { params });
 
+// Recommended ads (Home)
+export const getRecommendedAds = (limit = 10) =>
+  api.get("/ads", { params: { limit, sort: "-createdAt" } });
+
 export const getAdById = (id) => api.get(`/ads/${id}`);
 
 export const createAd = (formData) => {
