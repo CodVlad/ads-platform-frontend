@@ -281,85 +281,6 @@ const Home = () => {
           z-index: 1;
         }
 
-        .home-hero {
-          background: var(--bg-card, #fff);
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          border-radius: var(--radius-lg, 18px);
-          box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
-          padding: 32px 28px;
-          margin-bottom: 40px;
-        }
-        .home-hero__inner {
-          display: flex;
-          align-items: stretch;
-          gap: 32px;
-          flex-wrap: wrap;
-        }
-        .home-hero__content {
-          flex: 1;
-          min-width: 280px;
-        }
-        .home-hero__content .page-title {
-          margin: 0 0 8px 0;
-          font-size: 28px;
-          font-weight: 800;
-          color: var(--text-main, #0f172a);
-          letter-spacing: -0.02em;
-        }
-        .home-hero__content .page-subtitle {
-          margin: 0 0 20px 0;
-          color: var(--text-muted, #64748b);
-          font-size: 15px;
-          line-height: 1.5;
-        }
-        .home-hero__ctas {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          margin-bottom: 20px;
-        }
-        .home-hero__hint {
-          font-size: 13px;
-          color: var(--text-muted, #64748b);
-          padding: 10px 14px;
-          background: rgba(15, 23, 42, 0.04);
-          border-radius: var(--radius-md, 12px);
-          border: 1px solid rgba(15, 23, 42, 0.06);
-        }
-        .home-hero__aside {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          align-items: flex-start;
-          align-content: flex-start;
-        }
-        .home-stat {
-          background: rgba(37, 99, 235, 0.06);
-          border: 1px solid rgba(37, 99, 235, 0.12);
-          border-radius: var(--radius-md, 12px);
-          padding: 14px 16px;
-          min-width: 140px;
-        }
-        .home-stat__title {
-          font-size: 13px;
-          font-weight: 700;
-          color: var(--primary, #2563eb);
-          margin: 0 0 2px 0;
-        }
-        .home-stat__text {
-          font-size: 12px;
-          color: var(--text-muted, #64748b);
-          margin: 0;
-        }
-        @media (max-width: 900px) {
-          .home-hero__inner {
-            flex-direction: column;
-          }
-          .home-hero__aside {
-            width: 100%;
-          }
-        }
-
         .home-section {
           margin-bottom: 40px;
         }
@@ -490,41 +411,13 @@ const Home = () => {
       `}</style>
 
       <div className="container">
-        <section className="home-hero">
-          <div className="home-hero__inner">
-            <div className="home-hero__content">
-              <h1 className="page-title">Find what you need. Sell what you don&apos;t.</h1>
-              <p className="page-subtitle">
-                A clean marketplace experience for modern listings — fast search, clear filters, and premium presentation.
-              </p>
-              <div className="home-hero__ctas">
-                <Link to="/ads" className="btn btn-primary">
-                  Explore listings
-                </Link>
-                <Link to="/create" className="btn btn-secondary">
-                  Post an ad
-                </Link>
-              </div>
-              <div className="home-hero__hint" aria-hidden="true">
-                Search by keyword, category, or price range on the listings page.
-              </div>
-            </div>
-            <div className="home-hero__aside">
-              <div className="home-stat">
-                <div className="home-stat__title">Fast search</div>
-                <p className="home-stat__text">Filter by category and price</p>
-              </div>
-              <div className="home-stat">
-                <div className="home-stat__title">Verified sellers</div>
-                <p className="home-stat__text">Trusted marketplace</p>
-              </div>
-              <div className="home-stat">
-                <div className="home-stat__title">Secure chat</div>
-                <p className="home-stat__text">Message sellers safely</p>
-              </div>
-            </div>
-          </div>
-        </section>
+        <div className="hero">
+          <h1 className="page-title">Find what you need. Sell what you don&apos;t.</h1>
+          <p className="page-subtitle">
+            A clean marketplace experience for modern listings — fast search, clear filters, and premium presentation.
+          </p>
+          <Link to="/ads" className="btn btn-primary">Explore listings</Link>
+        </div>
 
         <section className="home-section">
           <div className="home-section__head">
