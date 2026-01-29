@@ -248,97 +248,362 @@ const Home = () => {
     }
   };
 
-  return (
-    <div className="page">
-      <div className="container">
-        {/* Hero (blue → white gradient) */}
-        <div className="hero">
-          <h1 className="page-title">Find what you need. Sell what you don't.</h1>
-          <p className="page-subtitle">
-            A clean marketplace experience for modern listings — fast search, clear filters, and premium presentation.
-          </p>
-          <Link to="/ads" className="btn btn-primary">Explore listings</Link>
-        </div>
+  const fallbackCategories = [
+    { _id: "fallback-automobile", name: "Auto & Transport", slug: "automobile" },
+    { _id: "fallback-imobiliare", name: "Imobiliare", slug: "imobiliare" },
+    { _id: "fallback-electronice", name: "Electronice & Tehnică", slug: "electronice-tehnica" },
+    { _id: "fallback-casa", name: "Casă & Grădină", slug: "casa-gradina" },
+    { _id: "fallback-moda", name: "Modă & Frumusețe", slug: "moda-frumusete" },
+    { _id: "fallback-jobs", name: "Locuri de muncă", slug: "locuri-de-munca" },
+  ];
 
-        {/* Category Section */}
-        <section className="section">
+  const categoriesToRender = displayCategories.length > 0 ? displayCategories : fallbackCategories;
+
+  return (
+    <div className="page home">
+      <style>{`
+        .home {
+          position: relative;
+          min-height: 100vh;
+        }
+        .home::before {
+          content: "";
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+          background:
+            radial-gradient(900px 500px at 10% 0%, rgba(37, 99, 235, 0.08), transparent 50%),
+            radial-gradient(800px 400px at 90% 80%, rgba(59, 130, 246, 0.06), transparent 50%);
+        }
+        .home .container {
+          position: relative;
+          z-index: 1;
+        }
+
+        .home-hero {
+          background: var(--bg-card, #fff);
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: var(--radius-lg, 18px);
+          box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+          padding: 32px 28px;
+          margin-bottom: 40px;
+        }
+        .home-hero__inner {
+          display: flex;
+          align-items: stretch;
+          gap: 32px;
+          flex-wrap: wrap;
+        }
+        .home-hero__content {
+          flex: 1;
+          min-width: 280px;
+        }
+        .home-hero__content .page-title {
+          margin: 0 0 8px 0;
+          font-size: 28px;
+          font-weight: 800;
+          color: var(--text-main, #0f172a);
+          letter-spacing: -0.02em;
+        }
+        .home-hero__content .page-subtitle {
+          margin: 0 0 20px 0;
+          color: var(--text-muted, #64748b);
+          font-size: 15px;
+          line-height: 1.5;
+        }
+        .home-hero__ctas {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+        .home-hero__hint {
+          font-size: 13px;
+          color: var(--text-muted, #64748b);
+          padding: 10px 14px;
+          background: rgba(15, 23, 42, 0.04);
+          border-radius: var(--radius-md, 12px);
+          border: 1px solid rgba(15, 23, 42, 0.06);
+        }
+        .home-hero__aside {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          align-items: flex-start;
+          align-content: flex-start;
+        }
+        .home-stat {
+          background: rgba(37, 99, 235, 0.06);
+          border: 1px solid rgba(37, 99, 235, 0.12);
+          border-radius: var(--radius-md, 12px);
+          padding: 14px 16px;
+          min-width: 140px;
+        }
+        .home-stat__title {
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--primary, #2563eb);
+          margin: 0 0 2px 0;
+        }
+        .home-stat__text {
+          font-size: 12px;
+          color: var(--text-muted, #64748b);
+          margin: 0;
+        }
+        @media (max-width: 900px) {
+          .home-hero__inner {
+            flex-direction: column;
+          }
+          .home-hero__aside {
+            width: 100%;
+          }
+        }
+
+        .home-section {
+          margin-bottom: 40px;
+        }
+        .home-section__head {
+          margin-bottom: 24px;
+        }
+        .home-section__title {
+          font-size: 22px;
+          font-weight: 800;
+          color: var(--text-main, #0f172a);
+          letter-spacing: -0.02em;
+          margin: 0 0 6px 0;
+        }
+        .home-section__sub {
+          font-size: 14px;
+          color: var(--text-muted, #64748b);
+          margin: 0;
+        }
+        .home-section__head-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+        .home-section__head-row .home-section__title {
+          margin-bottom: 0;
+        }
+        .home-section__link {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-weight: 600;
+          color: var(--primary, #2563eb);
+          text-decoration: none;
+        }
+        .home-section__link:hover {
+          text-decoration: underline;
+        }
+        .home-skeleton-card {
+          height: 200px;
+          background: rgba(15, 23, 42, 0.04);
+        }
+        .home-panel .home-skeleton-card {
+          height: 240px;
+        }
+
+        .home .category-card {
+          border: 1px solid rgba(20, 80, 200, 0.12);
+          border-radius: var(--radius-lg, 18px);
+          overflow: hidden;
+          transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .home .category-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 14px 40px rgba(15, 23, 42, 0.12);
+          border-color: rgba(37, 99, 235, 0.2);
+        }
+        .home .category-card__icon {
+          width: 64px;
+          height: 64px;
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(37, 99, 235, 0.06));
+          border: 1px solid rgba(37, 99, 235, 0.15);
+          color: var(--primary, #2563eb);
+          margin-bottom: 12px;
+        }
+        .home .category-card__icon svg {
+          width: 32px;
+          height: 32px;
+        }
+        .home .category-card__chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          font-weight: 700;
+          color: var(--primary, #2563eb);
+          margin-top: 8px;
+          opacity: 0;
+          transform: translateY(4px);
+          transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .home .category-card:hover .category-card__chip {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .home .grid.grid-3 {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 20px;
+        }
+        @media (max-width: 900px) {
+          .home .grid.grid-3 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+        @media (max-width: 640px) {
+          .home .grid.grid-3 {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .home-panel {
+          background: rgba(255, 255, 255, 0.7);
+          border: 1px solid rgba(15, 23, 42, 0.06);
+          border-radius: var(--radius-lg, 18px);
+          padding: 24px;
+          box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+        }
+        .home-section__badge {
+          display: inline-flex;
+          align-items: center;
+          padding: 4px 10px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          background: rgba(37, 99, 235, 0.1);
+          border: 1px solid rgba(37, 99, 235, 0.18);
+          color: var(--primary, #2563eb);
+          margin-bottom: 12px;
+        }
+      `}</style>
+
+      <div className="container">
+        <section className="home-hero">
+          <div className="home-hero__inner">
+            <div className="home-hero__content">
+              <h1 className="page-title">Find what you need. Sell what you don&apos;t.</h1>
+              <p className="page-subtitle">
+                A clean marketplace experience for modern listings — fast search, clear filters, and premium presentation.
+              </p>
+              <div className="home-hero__ctas">
+                <Link to="/ads" className="btn btn-primary">
+                  Explore listings
+                </Link>
+                <Link to="/create" className="btn btn-secondary">
+                  Post an ad
+                </Link>
+              </div>
+              <div className="home-hero__hint" aria-hidden="true">
+                Search by keyword, category, or price range on the listings page.
+              </div>
+            </div>
+            <div className="home-hero__aside">
+              <div className="home-stat">
+                <div className="home-stat__title">Fast search</div>
+                <p className="home-stat__text">Filter by category and price</p>
+              </div>
+              <div className="home-stat">
+                <div className="home-stat__title">Verified sellers</div>
+                <p className="home-stat__text">Trusted marketplace</p>
+              </div>
+              <div className="home-stat">
+                <div className="home-stat__title">Secure chat</div>
+                <p className="home-stat__text">Message sellers safely</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="home-section">
+          <div className="home-section__head">
+            <h2 className="home-section__title">Browse categories</h2>
+            <p className="home-section__sub">Pick a category to filter listings instantly</p>
+          </div>
+
           {catsLoading ? (
             <div className="grid grid-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="card card--pad" style={{ height: 200, background: 'var(--surface-2)' }} />
+                <div key={i} className="card card--pad home-skeleton-card" />
               ))}
             </div>
-          ) : displayCategories.length > 0 ? (
+          ) : (
             <div className="grid grid-3">
-              {displayCategories.map((category) => (
+              {categoriesToRender.map((category) => (
                 <div
                   key={category._id || category.id || category.slug}
                   onClick={() => handleCategoryClick(category)}
                   className="category-card card card-hover"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleCategoryClick(category);
+                    }
+                  }}
                 >
                   <div className="category-card__icon">
                     {getCategoryIcon(category.slug, category.name)}
                   </div>
                   <h3 className="category-card__title">{category.name}</h3>
                   <p className="category-card__subtitle">Explore {category.name}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-3">
-              {[
-                { _id: "fallback-automobile", name: "Auto & Transport", slug: "automobile" },
-                { _id: "fallback-imobiliare", name: "Imobiliare", slug: "imobiliare" },
-                { _id: "fallback-electronice", name: "Electronice & Tehnică", slug: "electronice-tehnica" },
-                { _id: "fallback-casa", name: "Casă & Grădină", slug: "casa-gradina" },
-                { _id: "fallback-moda", name: "Modă & Frumusețe", slug: "moda-frumusete" },
-                { _id: "fallback-jobs", name: "Locuri de muncă", slug: "locuri-de-munca" },
-              ].map((fallback) => (
-                <div
-                  key={fallback._id}
-                  onClick={() => handleCategoryClick(fallback)}
-                  className="category-card card card-hover"
-                >
-                  <div className="category-card__icon">
-                    {getCategoryIcon(fallback.slug, fallback.name)}
-                  </div>
-                  <h3 className="category-card__title">{fallback.name}</h3>
-                  <p className="category-card__subtitle">Explore {fallback.name}</p>
+                  <span className="category-card__chip">
+                    Explore
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
                 </div>
               ))}
             </div>
           )}
         </section>
 
-        {/* Recommended Ads Section */}
-        <section className="section">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="t-h2">Recommended</h2>
-            <Link to="/ads" className="nav-link flex items-center gap-2">
-              View all
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </Link>
-              </div>
-
-          {loading ? (
-            <div className="grid grid-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="card card--pad" style={{ height: 240, background: 'var(--surface-2)' }} />
-              ))}
+        <section className="home-section">
+          <div className="home-section__head">
+            <span className="home-section__badge">Latest</span>
+            <div className="home-section__head-row">
+              <h2 className="home-section__title">Recommended</h2>
+              <Link to="/ads" className="nav-link home-section__link">
+                View all
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Link>
             </div>
-          ) : recommendedAds.length === 0 ? (
-            <div className="text-center py-6">
-              <p className="t-muted">No ads available at the moment.</p>
+          </div>
+
+          <div className="home-panel">
+            {loading ? (
+              <div className="grid grid-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="card card--pad home-skeleton-card" />
+                ))}
               </div>
-          ) : (
-            <div className="grid grid-3">
-              {recommendedAds.map(ad => (
-                    <AdCard key={ad._id} ad={ad} showFavoriteButton={true} />
-                  ))}
-                  </div>
-                )}
+            ) : recommendedAds.length === 0 ? (
+              <div className="text-center py-6">
+                <p className="t-muted">No ads available at the moment.</p>
+              </div>
+            ) : (
+              <div className="grid grid-3">
+                {recommendedAds.map(ad => (
+                  <AdCard key={ad._id} ad={ad} showFavoriteButton={true} />
+                ))}
+              </div>
+            )}
+          </div>
         </section>
       </div>
     </div>

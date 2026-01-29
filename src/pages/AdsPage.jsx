@@ -27,6 +27,15 @@ const getAdCategorySlug = (ad) => {
   return '';
 };
 
+const getAdSubCategorySlug = (ad) => {
+  const sub = ad?.subCategory;
+  if (ad?.subCategorySlug) return String(ad.subCategorySlug).toLowerCase().trim();
+  if (!sub) return '';
+  if (typeof sub === 'string') return sub.toLowerCase().trim();
+  if (typeof sub === 'object') return String(sub.slug || sub.name || '').toLowerCase().trim();
+  return '';
+};
+
 const AdsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { categories } = useCategories();
@@ -43,6 +52,12 @@ const AdsPage = () => {
 
   const categoryIdParam = (searchParams.get('categoryId') || '').trim();
   const categorySlugParam = (searchParams.get('category') || '').trim();
+  const subCategorySlugParam = (
+    searchParams.get('subCategorySlug') ||
+    searchParams.get('subCategory') ||
+    searchParams.get('subCategoryId') ||
+    ''
+  ).trim();
   const searchParam = (searchParams.get('search') || '').trim();
   const sort = searchParams.get('sort') || '-createdAt';
   const page = parseInt(searchParams.get('page') || '1', 10);
@@ -63,7 +78,7 @@ const AdsPage = () => {
     try {
       setLoading(true);
 
-      const shouldFetchAll = categoryIdParam || categorySlugParam;
+      const shouldFetchAll = categoryIdParam || categorySlugParam || subCategorySlugParam;
       const fetchLimit = shouldFetchAll ? 10000 : limit;
       const fetchPage = shouldFetchAll ? 1 : page;
 
@@ -78,6 +93,7 @@ const AdsPage = () => {
         params.category = categorySlugParam;
         params.categorySlug = categorySlugParam;
       }
+      if (subCategorySlugParam) params.subCategorySlug = subCategorySlugParam;
       if (searchParam) params.search = searchParam;
       if (minPrice) params.minPrice = minPrice;
       if (maxPrice) params.maxPrice = maxPrice;
@@ -122,7 +138,7 @@ const AdsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, sort, minPrice, maxPrice, categoryIdParam, categorySlugParam, searchParam]);
+  }, [page, limit, sort, minPrice, maxPrice, categoryIdParam, categorySlugParam, subCategorySlugParam, searchParam]);
 
   useEffect(() => {
     fetchAds();
@@ -153,6 +169,19 @@ const AdsPage = () => {
       });
     }
 
+    if (subCategorySlugParam) {
+      const slug = subCategorySlugParam.toLowerCase().trim();
+      filtered = filtered.filter((ad) => {
+        const extractedSlug = getAdSubCategorySlug(ad);
+        const subName = ad?.subCategory?.name ? String(ad.subCategory.name).toLowerCase().trim() : '';
+        return (
+          extractedSlug === slug ||
+          (extractedSlug && extractedSlug.includes(slug)) ||
+          subName === slug
+        );
+      });
+    }
+
     if (searchParam) {
       const query = searchParam.toLowerCase();
       filtered = filtered.filter((ad) => {
@@ -161,7 +190,7 @@ const AdsPage = () => {
       });
     }
 
-    if (categoryIdParam || categorySlugParam || searchParam) {
+    if (categoryIdParam || categorySlugParam || subCategorySlugParam || searchParam) {
       setPagination((prev) => ({
         ...prev,
         total: filtered.length,
@@ -176,10 +205,11 @@ const AdsPage = () => {
         filteredAds: filtered.length,
         categoryIdParam,
         categorySlugParam,
+        subCategorySlugParam,
         searchParam,
       });
     }
-  }, [allAds, categoryIdParam, categorySlugParam, searchParam]);
+  }, [allAds, categoryIdParam, categorySlugParam, subCategorySlugParam, searchParam]);
 
   const handleFilterChange = (key, value) => {
     const newParams = new URLSearchParams(searchParams);
@@ -196,6 +226,18 @@ const AdsPage = () => {
     const next = new URLSearchParams(searchParams);
     next.delete('categoryId');
     next.delete('category');
+    next.delete('subCategorySlug');
+    next.delete('subCategory');
+    next.delete('subCategoryId');
+    next.delete('page');
+    setSearchParams(next);
+  };
+
+  const clearSubCategory = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('subCategorySlug');
+    next.delete('subCategory');
+    next.delete('subCategoryId');
     next.delete('page');
     setSearchParams(next);
   };
@@ -222,8 +264,18 @@ const AdsPage = () => {
         ? categories.find((c) => (c.slug || '').toLowerCase() === categorySlugParam.toLowerCase())
         : null;
   const selectedCategoryName = selectedCategory?.name || selectedCategory?.label || null;
+  const availableSubcategories = selectedCategory?.subcategories || selectedCategory?.subs || [];
+  const selectedSubcategory =
+    subCategorySlugParam &&
+    availableSubcategories.find(
+      (sub) =>
+        (sub.slug || sub).toString().toLowerCase() === subCategorySlugParam.toLowerCase()
+    );
+  const selectedSubcategoryName =
+    selectedSubcategory?.name || selectedSubcategory?.label || selectedSubcategory || subCategorySlugParam;
 
-  const hasActiveFilters = categoryIdParam || categorySlugParam || searchParam;
+  const hasActiveFilters =
+    categoryIdParam || categorySlugParam || subCategorySlugParam || searchParam;
 
   return (
     <div className="ads-page">
@@ -264,6 +316,19 @@ const AdsPage = () => {
                   onClick={clearCategory}
                   className="ads-chip-x"
                   aria-label="Clear category"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {subCategorySlugParam && (
+              <span className="ads-chip">
+                Subcategory: {selectedSubcategoryName}
+                <button
+                  type="button"
+                  onClick={clearSubCategory}
+                  className="ads-chip-x"
+                  aria-label="Clear subcategory"
                 >
                   ×
                 </button>
@@ -312,16 +377,22 @@ const AdsPage = () => {
                         const catId = selectedCat._id || selectedCat.id || '';
                         const catSlug = (selectedCat.slug || '').trim();
                         if (catId) {
-                          handleFilterChange('categoryId', catId);
-                          if (catSlug) {
-                            const newParams = new URLSearchParams(searchParams);
-                            newParams.set('categoryId', catId);
-                            newParams.set('category', catSlug);
-                            newParams.delete('page');
-                            setSearchParams(newParams);
-                          }
+                          const newParams = new URLSearchParams(searchParams);
+                          newParams.set('categoryId', catId);
+                          if (catSlug) newParams.set('category', catSlug);
+                          newParams.delete('subCategorySlug');
+                          newParams.delete('subCategory');
+                          newParams.delete('subCategoryId');
+                          newParams.delete('page');
+                          setSearchParams(newParams);
                         } else if (catSlug) {
-                          handleFilterChange('category', catSlug);
+                          const newParams = new URLSearchParams(searchParams);
+                          newParams.set('category', catSlug);
+                          newParams.delete('subCategorySlug');
+                          newParams.delete('subCategory');
+                          newParams.delete('subCategoryId');
+                          newParams.delete('page');
+                          setSearchParams(newParams);
                         }
                       }
                     } else {
@@ -343,6 +414,43 @@ const AdsPage = () => {
                   })}
                 </select>
               </div>
+
+              {selectedCategory && (
+                <div className="filter-group">
+                  <label className="filter-label" htmlFor="ads-subcategory">
+                    Subcategory
+                  </label>
+                  <select
+                    id="ads-subcategory"
+                    value={subCategorySlugParam}
+                    onChange={(e) => {
+                      const value = e.target.value.trim();
+                      if (value) {
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.set('subCategorySlug', value);
+                        newParams.delete('subCategory');
+                        newParams.delete('subCategoryId');
+                        newParams.delete('page');
+                        setSearchParams(newParams);
+                      } else {
+                        clearSubCategory();
+                      }
+                    }}
+                    className="field-input"
+                  >
+                    <option value="">All Subcategories</option>
+                    {availableSubcategories.map((sub) => {
+                      const subSlug = sub.slug ?? sub;
+                      const subLabel = sub.name || sub.label || subSlug;
+                      return (
+                        <option key={subSlug} value={subSlug}>
+                          {subLabel}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              )}
 
               <div className="filter-group">
                 <label className="filter-label" htmlFor="ads-min-price">
