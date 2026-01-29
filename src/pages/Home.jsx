@@ -251,12 +251,13 @@ const Home = () => {
   return (
     <div className="page">
       <div className="container">
-        {/* Page Header */}
-        <div className="page-header">
-          <h1 className="page-header__title">Find what you need. Sell what you don't.</h1>
-          <p className="page-header__subtitle">
+        {/* Hero (blue → white gradient) */}
+        <div className="hero">
+          <h1 className="page-title">Find what you need. Sell what you don't.</h1>
+          <p className="page-subtitle">
             A clean marketplace experience for modern listings — fast search, clear filters, and premium presentation.
           </p>
+          <Link to="/ads" className="btn btn-primary">Explore listings</Link>
         </div>
 
         {/* Category Section */}

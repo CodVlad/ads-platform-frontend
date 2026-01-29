@@ -409,8 +409,8 @@ const AdsPage = () => {
                 <h3 className="t-h3 mb-2">No listings found</h3>
                 <p className="t-body t-muted mb-4">
                   {(categoryIdParam || categorySlugParam || searchParam)
-                    ? 'Try adjusting your filters or search terms'
-                    : 'No ads available at the moment'
+                    ? 'No listings found for this filter. Try adjusting your filters or search.'
+                    : 'No ads available at the moment.'
                   }
                 </p>
                 {(categoryIdParam || categorySlugParam || searchParam) && (

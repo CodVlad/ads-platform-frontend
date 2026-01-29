@@ -175,8 +175,17 @@ const Navbar = () => {
             </div>
           </form>
 
-          {/* Right: Navigation Links */}
+          {/* Right: Favorites, My Conversations (when logged in), Profile */}
           <div className="nav-links">
+            {user && (
+              <>
+                <Link to="/favorites" className="nav-link">Favorites</Link>
+                <Link to="/chats" className="nav-link nav-link--with-badge">
+                  My Conversations
+                  {unread > 0 && <span className="nav-badge">{unread > 99 ? '99+' : unread}</span>}
+                </Link>
+              </>
+            )}
             <ProfileMenu />
           </div>
         </div>

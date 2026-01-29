@@ -3,7 +3,6 @@
 }
 
 :root {
-  /* Keep minimal resets here; premium dark theme lives in src/styles/theme.css */
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -24,39 +23,37 @@ body {
 
 a {
   font-weight: 500;
-  color: #007bff;
+  color: var(--primary);
   text-decoration: none;
   transition: color 0.2s;
 }
 
 a:hover {
-  color: #0056b3;
+  color: var(--primary-dark);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin: 0;
   font-weight: 600;
   line-height: 1.2;
 }
 
 h1 {
-  font-size: 2.5rem;
-}
-
-h2 {
   font-size: 2rem;
 }
-
+h2 {
+  font-size: 1.75rem;
+}
 h3 {
   font-size: 1.5rem;
 }
 
 button {
-  border-radius: 6px;
-  border: none;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 500;
   font-family: inherit;
   cursor: pointer;
   transition: all 0.2s;
@@ -69,23 +66,15 @@ button:disabled {
 
 button:focus,
 button:focus-visible {
-  outline: 2px solid var(--green-600);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
   font-family: inherit;
   font-size: 14px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  padding: 10px 14px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-input:focus, textarea:focus, select:focus {
-  outline: none;
-  border-color: var(--green-600);
-  box-shadow: 0 0 0 3px var(--green-glow);
 }
 
 label {
@@ -93,126 +82,23 @@ label {
   margin-bottom: 6px;
   font-weight: 500;
   font-size: 14px;
-  color: #333;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-  width: 100%;
+  color: var(--text-main);
 }
 
 .page-container {
   flex: 1;
   padding: 32px 0;
-  min-height: calc(100vh - 70px);
-}
-
-.card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  padding: 24px;
-  transition: box-shadow 0.2s;
-}
-
-.card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--green-600) 0%, var(--green-700) 100%);
-  color: white;
-  border-radius: 12px;
-  padding: 12px 24px;
-  font-weight: 600;
-  box-shadow: 0 4px 12px var(--green-glow);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px var(--green-glow);
-  background: linear-gradient(135deg, var(--green-500) 0%, var(--green-600) 100%);
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--green-600);
-  border: 2px solid var(--green-600);
-  border-radius: 12px;
-  padding: 12px 24px;
-  font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-ghost:hover:not(:disabled) {
-  background: var(--green-600);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--green-glow);
-}
-
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background-color: #5a6268;
-}
-
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background-color: #c82333;
-}
-
-.btn-success {
-  background-color: #28a745;
-  color: white;
-}
-
-.btn-success:hover:not(:disabled) {
-  background-color: #218838;
-}
-
-.nav-badge {
-  position: absolute;
-  top: -6px;
-  right: -8px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: #111827;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
+  min-height: calc(100vh - 72px);
 }
 
 @media (max-width: 768px) {
-  .container {
-    padding: 0 16px;
-  }
-  
   .page-container {
     padding: 24px 0;
   }
-  
   h1 {
-    font-size: 2rem;
-  }
-  
-  h2 {
     font-size: 1.75rem;
+  }
+  h2 {
+    font-size: 1.5rem;
   }
 }

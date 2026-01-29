@@ -338,7 +338,7 @@ const AdDetails = () => {
         {ad.description && (
           <div className="card card--pad">
             <h2 className="t-h2 mb-4">Description</h2>
-            <p className="t-body" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.8' }}>
+            <p className="t-body ad-description-text">
               {ad.description}
             </p>
           </div>

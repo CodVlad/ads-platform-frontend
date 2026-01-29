@@ -20,7 +20,6 @@ const Login = () => {
     e.preventDefault();
     setError('');
 
-    // Validation
     if (!email || !password) {
       setError('Email and password are required');
       return;
@@ -30,8 +29,7 @@ const Login = () => {
 
     try {
       const response = await login({ email, password });
-      
-      // Handle both response formats
+
       let token, user;
       if (response.data?.data?.token && response.data?.data?.user) {
         token = response.data.data.token;
@@ -44,10 +42,8 @@ const Login = () => {
       }
 
       loginSuccess({ token, user });
-      // Load favorites immediately after login
       await loadFavorites();
       success('Logged in');
-      // Don't redirect if on reset/forgot-password routes
       const hash = window.location.hash || '';
       const isResetFlow = hash.startsWith('#/reset-password') || hash.startsWith('#/forgot-password');
       if (!isResetFlow) {
@@ -64,109 +60,53 @@ const Login = () => {
 
   return (
     <div className="page-container">
-      <div className="container" style={{ maxWidth: '450px' }}>
-        <div className="card">
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <h1 style={{ 
-              fontSize: '2rem', 
-              fontWeight: '700', 
-              color: '#1a1a1a',
-              marginBottom: '8px',
-            }}>
-              Welcome Back
-            </h1>
-            <p style={{ color: '#666', fontSize: '15px' }}>
+      <div className="auth-card-wrap">
+        <div className="container">
+          <div className="card">
+            <h1 className="page-title text-center">Welcome Back</h1>
+            <p className="page-subtitle text-center">
               Sign in to your account to continue
             </p>
-          </div>
 
-          <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: '20px' }}>
-              <label htmlFor="email">Email Address</label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                placeholder="Enter your email"
-                style={{ width: '100%' }}
-              />
-            </div>
-            <div style={{ marginBottom: '12px' }}>
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                placeholder="Enter your password"
-                style={{ width: '100%' }}
-              />
-            </div>
-            <div style={{ 
-              marginBottom: '24px', 
-              textAlign: 'right',
-            }}>
-              <Link 
-                to="/forgot-password" 
-                style={{ 
-                  fontSize: '14px', 
-                  color: '#007bff',
-                  textDecoration: 'none',
-                }}
-              >
-                Forgot password?
-              </Link>
-            </div>
-            {error && (
-              <div style={{ 
-                color: '#c53030', 
-                backgroundColor: '#fff5f5',
-                padding: '12px',
-                borderRadius: '6px',
-                marginBottom: '20px',
-                fontSize: '14px',
-                border: '1px solid #fed7d7',
-              }}>
-                {error}
+            <form onSubmit={handleSubmit}>
+              <div className="form-field">
+                <label htmlFor="email">Email Address</label>
+                <input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                  placeholder="Enter your email"
+                  className="input"
+                />
               </div>
-            )}
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="btn-primary"
-              style={{ 
-                width: '100%',
-                padding: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-              }}
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-          </form>
+              <div className="form-field">
+                <label htmlFor="password">Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  placeholder="Enter your password"
+                  className="input"
+                />
+              </div>
+              <div className="form-field" style={{ marginBottom: 24, textAlign: 'right' }}>
+                <Link to="/forgot-password" className="t-small" style={{ color: 'var(--primary)' }}>
+                  Forgot password?
+                </Link>
+              </div>
+              {error && <div className="auth-error">{error}</div>}
+              <button type="submit" disabled={loading} className="btn btn-primary btn-block">
+                {loading ? 'Signing in...' : 'Sign In'}
+              </button>
+            </form>
 
-          <div style={{ 
-            marginTop: '24px', 
-            textAlign: 'center',
-            paddingTop: '24px',
-            borderTop: '1px solid #e0e0e0',
-          }}>
-            <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>
-              Don't have an account?{' '}
-              <Link 
-                to="/register" 
-                style={{ 
-                  color: '#007bff',
-                  fontWeight: '500',
-                  textDecoration: 'none',
-                }}
-              >
-                Create one now
-              </Link>
-            </p>
+            <div className="auth-footer">
+              <p className="t-small">Don't have an account? <Link to="/register">Create one now</Link></p>
+            </div>
           </div>
         </div>
       </div>
