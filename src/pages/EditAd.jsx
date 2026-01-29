@@ -5,6 +5,7 @@ import useCategories from '../hooks/useCategories';
 import ImageUploader from '../components/ImageUploader';
 import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
+import { capitalizeWords } from '../utils/text';
 import '../styles/edit-ad.css';
 
 const EditAd = () => {
@@ -228,7 +229,7 @@ const EditAd = () => {
               <div className="editad-preview-label">Price</div>
               <div className="editad-preview-value">{displayPrice}</div>
               <div className="editad-preview-label">Category</div>
-              <div className="editad-preview-value">{displayCategory}</div>
+              <div className="editad-preview-value">{capitalizeWords(displayCategory)}</div>
               {adStatus && (
                 <>
                   <div className="editad-preview-label">Status</div>
@@ -405,7 +406,7 @@ const EditAd = () => {
                     </option>
                     {categories.map((cat) => (
                       <option key={cat.slug} value={cat.slug}>
-                        {cat.name || cat.label}
+                        {capitalizeWords(cat.name || cat.label)}
                       </option>
                     ))}
                   </select>
@@ -435,7 +436,7 @@ const EditAd = () => {
                         const subLabel = subCat.name || subCat.label || subCat;
                         return (
                           <option key={subSlug} value={subSlug}>
-                            {subLabel}
+                            {capitalizeWords(subLabel)}
                           </option>
                         );
                       })}

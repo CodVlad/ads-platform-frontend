@@ -5,6 +5,7 @@ import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
 import useCategories from '../hooks/useCategories';
 import ImageUploader from '../components/ImageUploader';
+import { capitalizeWords } from '../utils/text';
 import '../styles/create-ad.css';
 
 const CreateAd = () => {
@@ -326,7 +327,7 @@ const CreateAd = () => {
                     </option>
                     {categories.map((cat) => (
                       <option key={cat.slug} value={cat.slug}>
-                        {cat.name || cat.label}
+                        {capitalizeWords(cat.name || cat.label)}
                       </option>
                     ))}
                   </select>
@@ -353,7 +354,7 @@ const CreateAd = () => {
                         const subLabel = subCat.name || subCat.label || subCat;
                         return (
                           <option key={subSlug} value={subSlug}>
-                            {subLabel}
+                            {capitalizeWords(subLabel)}
                           </option>
                         );
                       })}

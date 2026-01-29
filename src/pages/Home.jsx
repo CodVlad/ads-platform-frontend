@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getAds } from '../api/endpoints';
 import { fetchCategories } from '../api/categoriesApi';
 import AdCard from '../components/AdCard';
+import { capitalizeWords } from '../utils/text';
 
 // Fixed 6 tiles: always use these slugs for navigation (never synthetic ids like cat-real-estate)
 const HOME_TILES = [
@@ -108,13 +109,13 @@ const Home = () => {
           .map(c => {
             // Generate a fallback ID if none exists
             const id = c?._id || c?.id || `cat-${c?.slug || c?.name || Math.random()}`;
-            const name = c?.name || c?.title || c?.label || "";
-            const slug = (c?.slug || c?.key || c?.name || "").toString().toLowerCase().trim();
-            
-    return {
+            const name = capitalizeWords(c?.name || c?.title || c?.label || '');
+            const slug = (c?.slug || c?.key || c?.name || '').toString().toLowerCase().trim();
+
+            return {
               _id: id,
-              name: name,
-              slug: slug,
+              name,
+              slug,
             };
           })
           .filter(c => c.name && c.name.trim() !== ""); // Only filter by name, not _id
@@ -419,8 +420,8 @@ const Home = () => {
                   <div className="category-card__icon">
                     {getCategoryIcon(category.slug, category.name)}
                   </div>
-                  <h3 className="category-card__title">{category.name}</h3>
-                  <p className="category-card__subtitle">Explore {category.name}</p>
+                  <h3 className="category-card__title">{capitalizeWords(category.name)}</h3>
+                  <p className="category-card__subtitle">Explore {capitalizeWords(category.name)}</p>
                   <span className="category-card__chip">
                     Explore
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

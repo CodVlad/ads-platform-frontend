@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import useCategories from '../hooks/useCategories';
+import { capitalizeWords } from '../utils/text';
 
 const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
   // Create initial filters from initialValues (only used for initial state)
@@ -253,7 +254,7 @@ const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
             <option value="">{loadingCategories ? 'Loading...' : 'All Categories'}</option>
             {categories.map((cat) => (
               <option key={cat.slug} value={cat.slug}>
-                {cat.name || cat.label}
+                {capitalizeWords(cat.name || cat.label)}
               </option>
             ))}
           </select>
@@ -276,7 +277,7 @@ const FiltersBar = ({ initialValues = {}, onApply, onReset }) => {
                 const subLabel = subCat.name || subCat.label || subCat;
                 return (
                   <option key={subSlug} value={subSlug}>
-                    {subLabel}
+                    {capitalizeWords(subLabel)}
                   </option>
                 );
               })}

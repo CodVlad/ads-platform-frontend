@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { getAds } from '../api/endpoints';
 import useCategories from '../hooks/useCategories';
 import AdCard from '../components/AdCard';
+import { capitalizeWords } from '../utils/text';
 import '../styles/ads.css';
 
 const SORT_OPTIONS = [
@@ -300,7 +301,9 @@ const AdsPage = () => {
             return accepted && accepted.some((a) => normalizeSlug(a) === normalizeSlug(cs));
           })
         : null;
-  const selectedCategoryName = selectedCategory?.name || selectedCategory?.label || null;
+  const selectedCategoryName = capitalizeWords(
+    selectedCategory?.name || selectedCategory?.label || ''
+  ) || null;
   const availableSubcategories = selectedCategory?.subcategories || selectedCategory?.subs || [];
   const selectedSubcategory =
     subCategorySlugParam &&
@@ -308,8 +311,9 @@ const AdsPage = () => {
       (sub) =>
         (sub.slug || sub).toString().toLowerCase() === subCategorySlugParam.toLowerCase()
     );
-  const selectedSubcategoryName =
-    selectedSubcategory?.name || selectedSubcategory?.label || selectedSubcategory || subCategorySlugParam;
+  const selectedSubcategoryName = capitalizeWords(
+    selectedSubcategory?.name || selectedSubcategory?.label || selectedSubcategory || subCategorySlugParam || ''
+  ) || subCategorySlugParam;
 
   const hasActiveFilters =
     categoryIdParam || categorySlugParam || subCategorySlugParam || searchParam;
@@ -445,7 +449,7 @@ const AdsPage = () => {
                     const value = catId || catSlug;
                     return (
                       <option key={catId || catSlug} value={value}>
-                        {cat.name || cat.label}
+                        {capitalizeWords(cat.name || cat.label)}
                       </option>
                     );
                   })}
@@ -481,7 +485,7 @@ const AdsPage = () => {
                       const subLabel = sub.name || sub.label || subSlug;
                       return (
                         <option key={subSlug} value={subSlug}>
-                          {subLabel}
+                          {capitalizeWords(subLabel)}
                         </option>
                       );
                     })}
