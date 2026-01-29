@@ -4,6 +4,21 @@ import { getAds } from '../api/endpoints';
 import { fetchCategories } from '../api/categoriesApi';
 import AdCard from '../components/AdCard';
 
+// Fixed 6 tiles: always use these slugs for navigation (never synthetic ids like cat-real-estate)
+const HOME_TILES = [
+  { label: 'Auto & Transport', slug: 'automobile', keywords: ['autom', 'transport', 'auto'] },
+  { label: 'Imobiliare', slug: 'imobiliare', keywords: ['imobil'] },
+  { label: 'Electronice & Tehnică', slug: 'electronice-tehnica', keywords: ['electron', 'tehnic'] },
+  { label: 'Casă & Grădină', slug: 'casa-gradina', keywords: ['casa', 'gradina', 'grădină'] },
+  { label: 'Modă & Frumusețe', slug: 'moda-frumusete', keywords: ['moda', 'frumus'] },
+  { label: 'Locuri de muncă', slug: 'locuri-de-munca', keywords: ['munca', 'muncă', 'job', 'locuri'] },
+];
+
+const isMongoObjectId = (v) => {
+  const s = String(v || '').trim();
+  return /^[a-f0-9]{24}$/i.test(s);
+};
+
 // Icon per category (slug/name keywords). Each card gets one icon.
 const getCategoryIcon = (slug, name = '') => {
   const s = `${(slug || '')} ${(name || '')}`.toLowerCase();
@@ -144,63 +159,30 @@ const Home = () => {
     return () => { mounted = false; };
   }, []);
 
-  // Build the 6 cards list with smart matching
-  const picked = (() => {
-    // If no categories, return empty (fallback will be used)
-    if (cats.length === 0) return [];
-    
-    // try match by slug includes
-    const bySlug = [];
-    const used = new Set();
-    const take = (keyword) => {
-      const found = cats.find(c => !used.has(c._id) && c.slug.includes(keyword));
-      if (found) { 
-        used.add(found._id); 
-        bySlug.push(found); 
-      }
-    };
-
-    take("autom");
-    take("imobil");
-    take("electron");
-    take("casa");
-    take("moda");
-    take("munca");
-
-    if (bySlug.length === 6) return bySlug;
-    // If we don't have 6, fill with first available
-    const remaining = cats.filter(c => !used.has(c._id));
-    const result = [...bySlug, ...remaining].slice(0, 6);
-    return result;
-  })();
-
-  // Always ensure we have 6 cards - use fallback if needed
+  // Build 6 tiles from HOME_TILES: fixed slug, label; realCategoryId only if API category has Mongo ObjectId
   const displayCategories = (() => {
-    if (picked.length === 6) return picked;
-    
-    // Use fallback if we don't have enough
-    const fallback = [
-      { _id: "fallback-automobile", name: "Auto & Transport", slug: "automobile" },
-      { _id: "fallback-imobiliare", name: "Imobiliare", slug: "imobiliare" },
-      { _id: "fallback-electronice", name: "Electronice & Tehnică", slug: "electronice-tehnica" },
-      { _id: "fallback-casa", name: "Casă & Grădină", slug: "casa-gradina" },
-      { _id: "fallback-moda", name: "Modă & Frumusețe", slug: "moda-frumusete" },
-      { _id: "fallback-jobs", name: "Locuri de muncă", slug: "locuri-de-munca" },
-    ];
-    
-    // Merge picked with fallback, avoiding duplicates
-    const merged = [...picked];
-    const usedIds = new Set(picked.map(c => c._id));
-    
-    for (const fb of fallback) {
-      if (merged.length >= 6) break;
-      if (!usedIds.has(fb._id)) {
-        merged.push(fb);
-        usedIds.add(fb._id);
-      }
-    }
-    
-    return merged.slice(0, 6);
+    const used = new Set();
+    return HOME_TILES.map((tile) => {
+      const found = cats.find((c) => {
+        if (used.has(c._id)) return false;
+        const slug = (c.slug || '').toLowerCase();
+        const name = (c.name || '').toLowerCase();
+        const matches = tile.keywords.some(
+          (kw) => slug.includes(kw.toLowerCase()) || name.includes(kw.toLowerCase())
+        );
+        if (matches) {
+          used.add(c._id);
+          return true;
+        }
+        return false;
+      });
+      const id = found ? String(found._id || found.id || '') : '';
+      return {
+        name: tile.label,
+        slug: tile.slug,
+        realCategoryId: found && isMongoObjectId(id) ? id : null,
+      };
+    });
   })();
 
   // Fetch recommended ads
@@ -234,26 +216,17 @@ const Home = () => {
   }, []);
 
   const handleCategoryClick = (category) => {
-    const categoryId = category._id || category.id || '';
-    const categorySlug = (category.slug || '').trim();
-
-    if (categoryId && !String(categoryId).startsWith('fallback-')) {
-      navigate(`/ads?categoryId=${encodeURIComponent(categoryId)}`);
-    } else {
-      navigate(`/ads?category=${encodeURIComponent(categorySlug)}`);
-    }
+    const slug = (category.slug || '').trim();
+    const realCategoryId = category.realCategoryId && isMongoObjectId(category.realCategoryId)
+      ? category.realCategoryId
+      : null;
+    const query = realCategoryId
+      ? `?category=${encodeURIComponent(slug)}&categoryId=${encodeURIComponent(realCategoryId)}`
+      : `?category=${encodeURIComponent(slug)}`;
+    navigate(`/ads${query}`);
   };
 
-  const fallbackCategories = [
-    { _id: "fallback-automobile", name: "Auto & Transport", slug: "automobile" },
-    { _id: "fallback-imobiliare", name: "Imobiliare", slug: "imobiliare" },
-    { _id: "fallback-electronice", name: "Electronice & Tehnică", slug: "electronice-tehnica" },
-    { _id: "fallback-casa", name: "Casă & Grădină", slug: "casa-gradina" },
-    { _id: "fallback-moda", name: "Modă & Frumusețe", slug: "moda-frumusete" },
-    { _id: "fallback-jobs", name: "Locuri de muncă", slug: "locuri-de-munca" },
-  ];
-
-  const categoriesToRender = displayCategories.length > 0 ? displayCategories : fallbackCategories;
+  const categoriesToRender = displayCategories;
 
   return (
     <div className="page home">
