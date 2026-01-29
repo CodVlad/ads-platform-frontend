@@ -27,6 +27,14 @@ const getAdCategorySlug = (ad) => {
   return '';
 };
 
+const normalizeSlug = (v) => {
+  let s = String(v || '').toLowerCase().trim();
+  s = s.replace(/\s+/g, '-');
+  s = s.replace(/&/g, 'and');
+  s = s.replace(/[^a-z0-9-]/g, '');
+  return s;
+};
+
 const getAdSubCategorySlug = (ad) => {
   const sub = ad?.subCategory;
   if (ad?.subCategorySlug) return String(ad.subCategorySlug).toLowerCase().trim();
@@ -151,21 +159,22 @@ const AdsPage = () => {
       filtered = filtered.filter((ad) => {
         const adCategoryId = getAdCategoryId(ad);
         const directCategoryId = String(ad?.categoryId || '');
-        return adCategoryId === categoryIdParam || directCategoryId === categoryIdParam;
+        const categoryObjId = String(ad?.category?._id || ad?.category?.id || '');
+        return (
+          adCategoryId === categoryIdParam ||
+          directCategoryId === categoryIdParam ||
+          categoryObjId === categoryIdParam
+        );
       });
     } else if (categorySlugParam) {
-      const slug = categorySlugParam.toLowerCase().trim();
+      const slugNorm = normalizeSlug(categorySlugParam);
       filtered = filtered.filter((ad) => {
-        const adCategorySlug = getAdCategorySlug(ad);
-        const directCategorySlug = String(ad?.categorySlug || '').toLowerCase().trim();
-        const categoryName = ad?.category?.name ? String(ad.category.name).toLowerCase().trim() : '';
-        return (
-          adCategorySlug === slug ||
-          directCategorySlug === slug ||
-          categoryName === slug ||
-          (adCategorySlug && adCategorySlug.includes(slug)) ||
-          (directCategorySlug && directCategorySlug.includes(slug))
-        );
+        const adCategorySlug = normalizeSlug(getAdCategorySlug(ad));
+        const directSlug = normalizeSlug(ad?.categorySlug);
+        const categoryName = normalizeSlug(ad?.category?.name);
+        const match = (val) =>
+          val && (val === slugNorm || val.includes(slugNorm) || slugNorm.includes(val));
+        return match(adCategorySlug) || match(directSlug) || match(categoryName);
       });
     }
 

@@ -236,14 +236,10 @@ const Home = () => {
   const handleCategoryClick = (category) => {
     const categoryId = category._id || category.id || '';
     const categorySlug = (category.slug || '').trim();
-    
-    // Check if it's a fallback category
-    if (categoryId.startsWith('fallback-')) {
-      navigate(`/ads?category=${encodeURIComponent(categorySlug)}`);
-    } else if (categoryId) {
-      navigate(`/ads?categoryId=${encodeURIComponent(categoryId)}&category=${encodeURIComponent(categorySlug)}`);
-    } else if (categorySlug) {
-      // Fallback to slug only if no ID
+
+    if (categoryId && !String(categoryId).startsWith('fallback-')) {
+      navigate(`/ads?categoryId=${encodeURIComponent(categoryId)}`);
+    } else {
       navigate(`/ads?category=${encodeURIComponent(categorySlug)}`);
     }
   };
