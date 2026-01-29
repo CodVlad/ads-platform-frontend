@@ -304,6 +304,11 @@ const AdsPage = () => {
   const selectedCategoryName = capitalizeWords(
     selectedCategory?.name || selectedCategory?.label || ''
   ) || null;
+  const displayCategoryName =
+    selectedCategoryName ||
+    (categorySlugParam ? capitalizeWords(categorySlugParam.replace(/-/g, ' ')) : '') ||
+    categoryIdParam ||
+    '';
   const availableSubcategories = selectedCategory?.subcategories || selectedCategory?.subs || [];
   const selectedSubcategory =
     subCategorySlugParam &&
@@ -323,7 +328,7 @@ const AdsPage = () => {
       <div className="ads-container">
         <header className="ads-header">
           <div className="ads-header__left">
-            <h1 className="ads-title">{selectedCategoryName || 'All Ads'}</h1>
+            <h1 className="ads-title">{displayCategoryName || 'All Ads'}</h1>
             <p className="ads-subtitle">
               {visibleAds.length} {visibleAds.length === 1 ? 'result' : 'results'}
             </p>
@@ -351,7 +356,7 @@ const AdsPage = () => {
           <div className="ads-chips">
             {(categoryIdParam || categorySlugParam) && (
               <span className="ads-chip">
-                Category: {selectedCategoryName || categorySlugParam || categoryIdParam}
+                Category: {displayCategoryName}
                 <button
                   type="button"
                   onClick={clearCategory}
