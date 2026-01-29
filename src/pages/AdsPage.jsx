@@ -35,6 +35,22 @@ const normalizeSlug = (v) => {
   return s;
 };
 
+// Aliasuri: slug din Home/URL -> slug-uri acceptate din backend (match strict)
+const CATEGORY_SLUG_ALIASES = {
+  imobiliare: ['imobiliare', 'cat-real-estate'],
+  'cat-real-estate': ['cat-real-estate', 'imobiliare'],
+  automobile: ['automobile', 'cat-automobile', 'auto-transport'],
+  'cat-automobile': ['cat-automobile', 'automobile'],
+  'electronice-tehnica': ['electronice-tehnica', 'cat-electronics', 'electronice-tehnica'],
+  'cat-electronics': ['cat-electronics', 'electronice-tehnica'],
+  'casa-gradina': ['casa-gradina', 'cat-home-garden', 'casa-gradina'],
+  'cat-home-garden': ['cat-home-garden', 'casa-gradina'],
+  'moda-frumusete': ['moda-frumusete', 'cat-fashion', 'moda-frumusete'],
+  'cat-fashion': ['cat-fashion', 'moda-frumusete'],
+  'locuri-de-munca': ['locuri-de-munca', 'cat-jobs', 'locuri-de-munca'],
+  'cat-jobs': ['cat-jobs', 'locuri-de-munca'],
+};
+
 const getAdSubCategorySlug = (ad) => {
   const sub = ad?.subCategory;
   if (ad?.subCategorySlug) return String(ad.subCategorySlug).toLowerCase().trim();
@@ -168,13 +184,19 @@ const AdsPage = () => {
       });
     } else if (categorySlugParam) {
       const slugNorm = normalizeSlug(categorySlugParam);
+      const acceptedSlugs = new Set([
+        slugNorm,
+        ...(CATEGORY_SLUG_ALIASES[slugNorm] || []),
+      ]);
       filtered = filtered.filter((ad) => {
         const adCategorySlug = normalizeSlug(getAdCategorySlug(ad));
         const directSlug = normalizeSlug(ad?.categorySlug);
         const categoryName = normalizeSlug(ad?.category?.name);
-        const match = (val) =>
-          val && (val === slugNorm || val.includes(slugNorm) || slugNorm.includes(val));
-        return match(adCategorySlug) || match(directSlug) || match(categoryName);
+        return (
+          (adCategorySlug && acceptedSlugs.has(adCategorySlug)) ||
+          (directSlug && acceptedSlugs.has(directSlug)) ||
+          (categoryName && acceptedSlugs.has(categoryName))
+        );
       });
     }
 
@@ -270,7 +292,13 @@ const AdsPage = () => {
     categoryIdParam
       ? categories.find((c) => (c._id || c.id) === categoryIdParam)
       : categorySlugParam
-        ? categories.find((c) => (c.slug || '').toLowerCase() === categorySlugParam.toLowerCase())
+        ? categories.find((c) => {
+            const cs = (c.slug || '').toLowerCase().trim();
+            const paramNorm = categorySlugParam.toLowerCase().trim();
+            if (cs === paramNorm) return true;
+            const accepted = CATEGORY_SLUG_ALIASES[normalizeSlug(categorySlugParam)];
+            return accepted && accepted.some((a) => normalizeSlug(a) === normalizeSlug(cs));
+          })
         : null;
   const selectedCategoryName = selectedCategory?.name || selectedCategory?.label || null;
   const availableSubcategories = selectedCategory?.subcategories || selectedCategory?.subs || [];
