@@ -244,8 +244,12 @@ const CreateAd = () => {
       const sanitizedDetails = Object.fromEntries(
         Object.entries(details || {}).filter(([k]) => allowedDetailKeys.has(k))
       );
-
-      const isEmptyDetails = !sanitizedDetails || Object.keys(sanitizedDetails).length === 0;
+      const cleanedDetails = Object.fromEntries(
+        Object.entries(sanitizedDetails).filter(
+          ([, v]) => v !== '' && v !== null && v !== undefined
+        )
+      );
+      const hasDetails = Object.keys(cleanedDetails).length > 0;
 
       const formData = new FormData();
       formData.append('title', title.trim());
@@ -258,15 +262,15 @@ const CreateAd = () => {
         formData.append('subCategorySlug', subCategorySlug.trim());
       }
 
-      if (!isEmptyDetails) {
-        formData.append('details', JSON.stringify(sanitizedDetails));
+      if (hasDetails) {
+        formData.append('details', JSON.stringify(cleanedDetails));
       }
 
       Array.from(images).forEach((file) => formData.append('images', file));
 
       if (import.meta.env.DEV) {
         console.log('[CREATE_AD] formData keys:', Array.from(formData.keys()));
-        console.log('[CREATE_AD] details keys:', Object.keys(sanitizedDetails));
+        console.log('[CREATE_AD] details keys:', Object.keys(cleanedDetails));
       }
 
       await createAd(formData);
@@ -280,7 +284,10 @@ const CreateAd = () => {
       setError(msg);
       showError(msg);
 
-      if (data?.invalidKeys && Array.isArray(data.invalidKeys) && data.invalidKeys.length > 0) {
+      const hasInvalidKeys =
+        (data?.invalidKeys && Array.isArray(data.invalidKeys) && data.invalidKeys.length > 0) ||
+        data?.code === 'INVALID_DETAILS_KEYS';
+      if (hasInvalidKeys && data?.invalidKeys && Array.isArray(data.invalidKeys)) {
         setInvalidKeysFromBackend(data.invalidKeys);
         showError(`Invalid fields: ${data.invalidKeys.join(', ')}`);
       } else {
