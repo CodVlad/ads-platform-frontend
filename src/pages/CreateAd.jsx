@@ -9,6 +9,7 @@ import DynamicFields from '../components/DynamicFields';
 import { capitalizeWords } from '../utils/text';
 import { validateDynamicDetails, mergeFieldsByKey } from '../utils/dynamicDetailsValidation';
 import { CATEGORY_SLUG_ALIASES, CATEGORY_FIELD_PRESETS } from '../config/categoryFieldPresets';
+import { getFallbackFieldsByCategorySlug } from '../catalog/categoryFieldCatalog';
 import '../styles/create-ad.css';
 
 const canonicalSlug = (slug) => {
@@ -96,8 +97,10 @@ const CreateAd = () => {
       ? selectedSub.fields
       : [];
   const mergedFields = mergeFieldsByKey(baseFields, subFields);
+  const fallbackFields = getFallbackFieldsByCategorySlug(categorySlug, subCategorySlug);
+  const finalFields = mergedFields.length > 0 ? mergedFields : fallbackFields;
 
-  // When subcategory changes: keep details but remove keys no longer in mergedFields
+  // When subcategory/category changes: keep details but remove keys no longer in finalFields
   useEffect(() => {
     if (!categorySlug) return;
     const sel = categoryWithFields || categories.find((c) => c.slug === categorySlug);
@@ -110,8 +113,13 @@ const CreateAd = () => {
     const subF =
       Array.isArray(sub?.fields) && sub.fields.length > 0 ? sub.fields : [];
     const merged = mergeFieldsByKey(base, subF);
-    if (merged.length === 0) return;
-    const keys = new Set(merged.map((f) => f.key || f.name).filter(Boolean));
+    const fallback = getFallbackFieldsByCategorySlug(categorySlug, subCategorySlug);
+    const final = merged.length > 0 ? merged : fallback;
+    if (final.length === 0) {
+      setDetails({});
+      return;
+    }
+    const keys = new Set(final.map((f) => f.key || f.name).filter(Boolean));
     setDetails((prev) => {
       const next = {};
       keys.forEach((k) => {
@@ -161,7 +169,7 @@ const CreateAd = () => {
       errors.category = 'Category is required';
     }
 
-    const detailErrors = validateDynamicDetails(mergedFields, details);
+    const detailErrors = validateDynamicDetails(finalFields, details);
     Object.assign(errors, detailErrors);
 
     setValidationErrors(errors);
@@ -487,21 +495,23 @@ const CreateAd = () => {
               {categorySlug && (
                 <section className="createad-section createad-section--details">
                   <h3 className="createad-section-title">Details</h3>
-                  <p className="createad-section-sub">Category-specific criteria for your listing</p>
+                  <p className="createad-section-sub">
+                    {finalFields.length > 0 ? 'Complete details to improve visibility.' : 'Category-specific criteria for your listing'}
+                  </p>
                   {categoryFieldsLoading ? (
                     <div className="createad-details-skeleton" aria-hidden="true">
                       <div className="createad-skeleton-line" />
                       <div className="createad-skeleton-line" />
                       <div className="createad-skeleton-line createad-skeleton-line--short" />
                     </div>
-                  ) : mergedFields.length > 0 ? (
+                  ) : finalFields.length > 0 ? (
                     <div className="createad-details-grid">
                       <DynamicFields
-                        fields={mergedFields}
+                        fields={finalFields}
                         value={details}
                         onChange={setDetails}
                         errors={Object.fromEntries(
-                          mergedFields
+                          finalFields
                             .filter((f) => (f.key || f.name) && validationErrors[`detail_${f.key || f.name}`])
                             .map((f) => [(f.key || f.name), validationErrors[`detail_${f.key || f.name}`]])
                         )}
@@ -526,8 +536,8 @@ const CreateAd = () => {
                         </>
                       ) : (
                         <>
-                          <h4 className="createad-details-empty-title">Details are being prepared for this category</h4>
-                          <p className="createad-details-empty-sub">If you are the admin, add fields to this category in DB.</p>
+                          <h4 className="createad-details-empty-title">This category has no extra criteria</h4>
+                          <p className="createad-details-empty-sub">Continue with pricing and photos.</p>
                           <button
                             type="button"
                             className="btn btn-secondary createad-details-empty-btn"
