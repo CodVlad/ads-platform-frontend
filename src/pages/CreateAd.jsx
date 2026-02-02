@@ -219,10 +219,12 @@ const CreateAd = () => {
     setLoading(true);
 
     try {
-      const allowedKeys = new Set(finalFields.map((f) => f.key || f.name).filter(Boolean));
+      const allowedDetailKeys = new Set((finalFields || []).map((f) => f.key || f.name).filter(Boolean));
       const sanitizedDetails = Object.fromEntries(
-        Object.entries(details || {}).filter(([k]) => allowedKeys.has(k))
+        Object.entries(details || {}).filter(([k]) => allowedDetailKeys.has(k))
       );
+
+      const isEmptyDetails = !sanitizedDetails || Object.keys(sanitizedDetails).length === 0;
 
       const formData = new FormData();
       formData.append('title', title.trim());
@@ -230,18 +232,21 @@ const CreateAd = () => {
       formData.append('price', String(Number(price)));
       formData.append('currency', currency);
       formData.append('categorySlug', categorySlug);
+
       if (subCategorySlug && subCategorySlug.trim()) {
-        formData.append('subCategorySlug', subCategorySlug);
+        formData.append('subCategorySlug', subCategorySlug.trim());
       }
-      formData.append('details', JSON.stringify(sanitizedDetails));
+
+      if (!isEmptyDetails) {
+        formData.append('details', JSON.stringify(sanitizedDetails));
+      }
+
+      Array.from(images).forEach((file) => formData.append('images', file));
 
       if (import.meta.env.DEV) {
-        console.log('[CREATE_AD] categorySlug:', categorySlug, 'subCategorySlug:', subCategorySlug || 'null');
+        console.log('[CREATE_AD] formData keys:', Array.from(formData.keys()));
+        console.log('[CREATE_AD] details keys:', Object.keys(sanitizedDetails));
       }
-
-      Array.from(images).forEach((file) => {
-        formData.append('images', file);
-      });
 
       await createAd(formData);
       success('Ad created successfully');
