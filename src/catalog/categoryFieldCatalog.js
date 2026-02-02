@@ -49,42 +49,45 @@ function getServiciiFields() {
 function getAfaceriEchipamenteFields() {
   const maxYear = new Date().getFullYear() + 1;
   return [
-    { key: 'itemType', label: 'Tip Articol', type: 'select', required: true, options: ['Echipamente comerciale', 'Utilaje', 'Echipamente IT', 'Mobilier business', 'Scule', 'Echipamente medicale', 'Echipamente industriale', 'Altele'] },
+    { key: 'itemType', label: 'Tip Articol', type: 'select', required: true, options: ['Echipamente comerciale', 'Utilaje', 'Echipamente IT', 'Mobilier business', 'Scule', 'Echipamente medicale', 'Echipamente industriale', 'Stocuri / Lichidări', 'Altele'] },
     { key: 'condition', label: 'Stare', type: 'select', required: true, options: ['Nou', 'Ca nou', 'Folosit', 'Pentru piese'] },
     { key: 'brand', label: 'Brand', type: 'text', required: false, placeholder: 'Marca' },
     { key: 'model', label: 'Model', type: 'text', required: false, placeholder: 'Model' },
     { key: 'year', label: 'An', type: 'number', required: false, min: 1950, max: maxYear, unit: 'an' },
     { key: 'warranty', label: 'Garanție', type: 'select', required: false, options: ['Da', 'Nu'] },
     { key: 'invoiceVAT', label: 'Factură / TVA', type: 'select', required: false, options: ['Cu factură', 'Fără factură', 'TVA inclus', 'TVA nu se aplică'] },
-    { key: 'powerW', label: 'Putere (W)', type: 'number', required: false, min: 0, unit: 'W' },
+    { key: 'powerW', label: 'Putere (W)', type: 'number', required: false, min: 0, unit: 'W', placeholder: 'Ex: 1500' },
     { key: 'voltage', label: 'Tensiune', type: 'select', required: false, options: ['220V', '380V', 'Alt'] },
     { key: 'stockQty', label: 'Cantitate Disponibilă', type: 'number', required: false, min: 1, unit: 'buc' },
+    { key: 'location', label: 'Locație', type: 'text', required: false, placeholder: 'Oraș / Regiune' },
   ];
 }
 
 function getCopiiBebelusiFields() {
   return [
-    { key: 'productType', label: 'Tip Produs', type: 'select', required: true, options: ['Haine', 'Încălțăminte', 'Cărucior', 'Scaun auto', 'Pătuț', 'Jucării', 'Hrană', 'Accesorii', 'Altele'] },
+    { key: 'productType', label: 'Tip Produs', type: 'select', required: true, options: ['Haine', 'Încălțăminte', 'Cărucior', 'Scaun auto', 'Pătuț', 'Jucării', 'Hrană', 'Accesorii', 'Mobilier copii', 'Altele'] },
     { key: 'ageRange', label: 'Vârstă', type: 'select', required: true, options: ['0-3 luni', '3-6 luni', '6-12 luni', '1-2 ani', '3-5 ani', '6-8 ani', '9-12 ani', '13+'] },
     { key: 'gender', label: 'Gen', type: 'select', required: false, options: ['Unisex', 'Băiat', 'Fată'] },
-    { key: 'size', label: 'Mărime', type: 'text', required: false, placeholder: '56, 62, 74, 80…' },
-    { key: 'condition', label: 'Stare', type: 'select', required: true, options: ['Nou', 'Ca nou', 'Folosit'] },
+    { key: 'size', label: 'Mărime', type: 'text', required: false, placeholder: '56, 62, 74, 80 sau S, M, L…' },
+    { key: 'condition', label: 'Stare', type: 'select', required: true, options: ['Nou', 'Nou cu etichetă', 'Ca nou', 'Folosit'] },
     { key: 'brand', label: 'Brand', type: 'text', required: false, placeholder: 'Marca' },
     { key: 'color', label: 'Culoare', type: 'text', required: false, placeholder: 'Culoare' },
-    { key: 'material', label: 'Material', type: 'text', required: false, placeholder: 'Material' },
+    { key: 'material', label: 'Material', type: 'text', required: false, placeholder: 'Material (bumbac, poliester…)' },
     { key: 'safetyCertified', label: 'Certificare Siguranță', type: 'select', required: false, options: ['Da', 'Nu'] },
+    { key: 'originalPackaging', label: 'Ambalaj Original', type: 'select', required: false, options: ['Da', 'Nu'] },
   ];
 }
 
 function getSportTimpLiberFields() {
   return [
-    { key: 'sportType', label: 'Tip Sport', type: 'select', required: true, options: ['Fitness', 'Ciclism', 'Fotbal', 'Baschet', 'Tenis', 'Sporturi de iarnă', 'Pescuit', 'Camping', 'Alergare', 'Altele'] },
+    { key: 'sportType', label: 'Tip Sport', type: 'select', required: true, options: ['Fitness', 'Ciclism', 'Fotbal', 'Baschet', 'Tenis', 'Sporturi de iarnă', 'Pescuit', 'Camping', 'Alergare', 'Înot', 'Altele'] },
     { key: 'itemType', label: 'Tip Articol', type: 'select', required: true, options: ['Echipament', 'Îmbrăcăminte', 'Accesoriu', 'Bicicletă', 'Trotinetă', 'Aparate fitness', 'Altele'] },
     { key: 'condition', label: 'Stare', type: 'select', required: true, options: ['Nou', 'Ca nou', 'Folosit'] },
     { key: 'brand', label: 'Brand', type: 'text', required: false, placeholder: 'Marca' },
-    { key: 'size', label: 'Mărime/Dimensiune', type: 'text', required: false, placeholder: 'Mărime' },
+    { key: 'size', label: 'Mărime/Dimensiune', type: 'text', required: false, placeholder: 'Ex: S, M, L sau 54 cm' },
     { key: 'weightKg', label: 'Greutate (kg)', type: 'number', required: false, min: 0, unit: 'kg' },
     { key: 'material', label: 'Material', type: 'text', required: false, placeholder: 'Material' },
+    { key: 'color', label: 'Culoare', type: 'text', required: false, placeholder: 'Culoare' },
     { key: 'suitableFor', label: 'Potrivit Pentru', type: 'select', required: false, options: ['Începători', 'Intermediari', 'Profesioniști'] },
   ];
 }
@@ -120,14 +123,15 @@ function getAgriculturaFields() {
 
 function getEducatieCursuriFields() {
   return [
-    { key: 'courseType', label: 'Tip Curs', type: 'select', required: true, options: ['Meditații', 'Curs', 'Training', 'Workshop', 'Certificare', 'Altele'] },
+    { key: 'courseType', label: 'Tip Curs', type: 'select', required: true, options: ['Meditații', 'Curs', 'Training', 'Workshop', 'Certificare', 'Pregătire examene', 'Altele'] },
     { key: 'subject', label: 'Materie', type: 'select', required: true, options: ['Matematică', 'Română', 'Engleză', 'Germană', 'Franceză', 'IT/Programare', 'Design', 'Muzică', 'Dans', 'Business', 'Altele'] },
     { key: 'format', label: 'Format', type: 'select', required: true, options: ['Online', 'Offline', 'Hybrid'] },
     { key: 'level', label: 'Nivel', type: 'select', required: false, options: ['Începător', 'Intermediar', 'Avansat'] },
-    { key: 'duration', label: 'Durată', type: 'text', required: false, placeholder: 'ex: 60 min / 10 lecții' },
-    { key: 'schedule', label: 'Program', type: 'text', required: false, placeholder: 'Program' },
+    { key: 'duration', label: 'Durată', type: 'text', required: false, placeholder: 'Ex: 60 min / 10 lecții' },
+    { key: 'schedule', label: 'Program', type: 'text', required: false, placeholder: 'Ex: L-V 14:00-18:00' },
     { key: 'certificate', label: 'Certificat', type: 'select', required: false, options: ['Da', 'Nu'] },
-    { key: 'groupOrIndividual', label: 'Individual / Grup', type: 'select', required: false, options: ['Individual', 'Grup'] },
+    { key: 'groupOrIndividual', label: 'Individual / Grup', type: 'select', required: false, options: ['Individual', 'Grup mic', 'Grup'] },
+    { key: 'location', label: 'Locație', type: 'text', required: false, placeholder: 'Oraș / Adresă sau Online' },
   ];
 }
 
