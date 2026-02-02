@@ -243,9 +243,14 @@ const CreateAd = () => {
       navigate('/my-ads');
     } catch (err) {
       const data = err?.response?.data;
+      if (import.meta.env.DEV) console.log('[CREATE_AD] error data:', data);
+
+      const msg = data?.message || parseError(err);
+      setError(msg);
+      showError(msg);
+
       if (data?.fieldErrors && typeof data.fieldErrors === 'object') {
         setValidationErrors((prev) => ({ ...prev, ...data.fieldErrors }));
-        showError(data.message || 'Please fix validation errors');
         const firstErrorKey = Object.keys(data.fieldErrors)[0];
         if (firstErrorKey) {
           setTimeout(() => {
@@ -254,12 +259,7 @@ const CreateAd = () => {
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }, 150);
         }
-        setLoading(false);
-        return;
       }
-      const errorMessage = parseError(err);
-      setError(errorMessage);
-      showError(errorMessage);
     } finally {
       setLoading(false);
     }
