@@ -1,8 +1,9 @@
 import { capitalizeWords } from '../utils/text';
 
 /**
- * Renders dynamic form inputs based on category schema fields.
+ * Pure renderer for dynamic form inputs based on category schema fields.
  * Used in CreateAd and EditAd for category-specific attributes.
+ * Does NOT render business messages (e.g. "unlock subcategory"); empty fields => return null.
  *
  * @param {Object} props
  * @param {Array<{key: string, label?: string, type: string, required?: boolean, options?: Array<string|{value, label}>, min?: number, max?: number, unit?: string, placeholder?: string}>} props.fields - Schema fields from category/subcategory

@@ -497,7 +497,7 @@ const CreateAd = () => {
                     </div>
                   ) : (
                     <div className="createad-empty-details">
-                      No extra criteria for this category. Continue with pricing and photos.
+                      No additional details for this category yet.
                     </div>
                   )}
                 </section>
