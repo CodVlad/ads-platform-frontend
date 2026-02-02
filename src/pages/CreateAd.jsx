@@ -80,24 +80,16 @@ const CreateAd = () => {
   }, [categorySlug, categories]);
 
   const canonicalCategorySlug = canonicalSlug(categorySlug);
-  const selectedCategory = categoryWithFields || categories.find((c) => c.slug === categorySlug);
+  const selectedCategory = categoryWithFields ?? categories.find((c) => c.slug === categorySlug);
   const availableSubcategories = selectedCategory?.subcategories || selectedCategory?.subs || [];
   const selectedSub = subCategorySlug
     ? availableSubcategories.find((s) => (s.slug || s) === subCategorySlug)
     : null;
 
-  const apiBase = Array.isArray(selectedCategory?.fields) ? selectedCategory.fields : [];
-  const selectedSubFields = Array.isArray(selectedSub?.fields) ? selectedSub.fields : [];
-  const allSubFieldsUnion = (availableSubcategories || []).reduce(
-    (acc, s) => mergeFieldsByKey(acc, s.fields || []),
-    []
+  const mergedFields = mergeFieldsByKey(
+    selectedCategory?.fields || [],
+    selectedSub?.fields || []
   );
-  const mergedFields =
-    apiBase.length > 0
-      ? mergeFieldsByKey(apiBase, selectedSubFields)
-      : selectedSub
-        ? mergeFieldsByKey([], selectedSubFields)
-        : allSubFieldsUnion;
   const fallbackFromConstants = getFallbackFieldsForCategory(categorySlug);
   const fallbackBase = getBaseFieldsByCategorySlug(categorySlug);
   const fallbackSubExtra = getExtraFieldsBySubcategorySlug(categorySlug, subCategorySlug);
@@ -105,11 +97,12 @@ const CreateAd = () => {
     fallbackFromConstants.length > 0
       ? fallbackFromConstants
       : (fallbackBase.length > 0 ? fallbackBase : (CATEGORY_FIELD_PRESETS[canonicalCategorySlug] || []));
-  const subExtraFields = selectedSubFields.length > 0 ? selectedSubFields : fallbackSubExtra;
+  const subExtraFields = Array.isArray(selectedSub?.fields) ? selectedSub.fields : fallbackSubExtra;
   const finalFields =
     mergedFields.length > 0 ? mergedFields : mergeFieldsByKey(baseFieldsFallback, subExtraFields);
+  const sortedFields = [...finalFields].sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
 
-  // When subcategory/category changes: keep details but remove keys no longer in finalFields
+  // When subcategory/category changes: keep details but remove keys no longer in sortedFields
   useEffect(() => {
     if (!categorySlug) return;
     const sel = categoryWithFields || categories.find((c) => c.slug === categorySlug);
@@ -187,7 +180,7 @@ const CreateAd = () => {
       errors.category = 'Category is required';
     }
 
-    const detailErrors = validateDynamicDetails(finalFields, details);
+    const detailErrors = validateDynamicDetails(sortedFields, details);
     Object.assign(errors, detailErrors);
 
     // Educație & Cursuri: city required when format is Offline or Hibrid
@@ -240,7 +233,7 @@ const CreateAd = () => {
     setLoading(true);
 
     try {
-      const allowedDetailKeys = new Set((finalFields || []).map((f) => f.key || f.name).filter(Boolean));
+      const allowedDetailKeys = new Set((sortedFields || []).map((f) => f.key || f.name).filter(Boolean));
       const sanitizedDetails = Object.fromEntries(
         Object.entries(details || {}).filter(([k]) => allowedDetailKeys.has(k))
       );
@@ -542,7 +535,7 @@ const CreateAd = () => {
                 <section className="createad-section createad-section--details">
                   <h3 className="createad-section-title">Details</h3>
                   <p className="createad-section-sub">
-                    {finalFields.length > 0 ? 'Complete details to improve visibility.' : 'Category-specific criteria for your listing'}
+                    {sortedFields.length > 0 ? 'Complete details to improve visibility.' : 'Category-specific criteria for your listing'}
                   </p>
                   {categoryFieldsLoading ? (
                     <div className="createad-details-skeleton" aria-hidden="true">
@@ -550,14 +543,14 @@ const CreateAd = () => {
                       <div className="createad-skeleton-line" />
                       <div className="createad-skeleton-line createad-skeleton-line--short" />
                     </div>
-                  ) : finalFields.length > 0 ? (
+                  ) : sortedFields.length > 0 ? (
                     <div className="createad-details-grid">
                       <DynamicFields
-                        fields={finalFields}
+                        fields={sortedFields}
                         value={details}
                         onChange={setDetails}
                         errors={Object.fromEntries(
-                          finalFields
+                          sortedFields
                             .filter((f) => (f.key || f.name) && validationErrors[`detail_${f.key || f.name}`])
                             .map((f) => [(f.key || f.name), validationErrors[`detail_${f.key || f.name}`]])
                         )}
@@ -566,7 +559,7 @@ const CreateAd = () => {
                     </div>
                   ) : (
                     <div className="createad-empty-details">
-                      No criteria for this category yet. Please contact support.
+                      Nu există criterii pentru această categorie încă.
                     </div>
                   )}
                   {invalidKeysFromBackend.length > 0 && (
