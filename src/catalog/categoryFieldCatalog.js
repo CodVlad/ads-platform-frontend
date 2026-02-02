@@ -9,21 +9,28 @@ const CATALOG_ALIASES = {
   servicii: 'servicii',
   services: 'servicii',
   'afaceri-echipamente': 'afaceri-echipamente',
+  'afaceri-si-echipamente': 'afaceri-echipamente',
   'business-equipment': 'afaceri-echipamente',
   'copii-bebelusi': 'copii-bebelusi',
+  'copii-si-bebelusi': 'copii-bebelusi',
   'kids-baby': 'copii-bebelusi',
   'sport-timp-liber': 'sport-timp-liber',
+  'sport-si-timp-liber': 'sport-timp-liber',
   'sport-leisure': 'sport-timp-liber',
   animale: 'animale',
   pets: 'animale',
   agricultura: 'agricultura',
   agriculture: 'agricultura',
   'educatie-cursuri': 'educatie-cursuri',
+  'educatie-si-cursuri': 'educatie-cursuri',
   'education-courses': 'educatie-cursuri',
 };
 
 function normalizeSlug(slug) {
-  return String(slug || '').toLowerCase().trim();
+  let s = String(slug || '').toLowerCase().trim();
+  // Normalize Romanian diacritics for lookup (slugifyRo-style)
+  s = s.replace(/ă/g, 'a').replace(/â/g, 'a').replace(/î/g, 'i').replace(/ș/g, 's').replace(/ț/g, 't');
+  return s;
 }
 
 function getServiciiFields() {
