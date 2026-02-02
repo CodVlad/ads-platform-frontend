@@ -7,6 +7,7 @@ import useCategories from '../hooks/useCategories';
 import ImageUploader from '../components/ImageUploader';
 import DynamicFields from '../components/DynamicFields';
 import { capitalizeWords } from '../utils/text';
+import { validateDynamicDetails, mergeFieldsByKey } from '../utils/dynamicDetailsValidation';
 import '../styles/create-ad.css';
 
 const CreateAd = () => {
@@ -25,22 +26,20 @@ const CreateAd = () => {
   const { categories, loading: loadingCategories, error: categoriesError } = useCategories();
   const [categorySlug, setCategorySlug] = useState('');
   const [subCategorySlug, setSubCategorySlug] = useState('');
-  const [attributes, setAttributes] = useState({});
+  const [details, setDetails] = useState({});
   const [categoryWithFields, setCategoryWithFields] = useState(null);
 
-  const getPreviewImageUrl = () => (images?.[0] ? URL.createObjectURL(images[0]) : '');
-
   useEffect(() => {
-    const url = getPreviewImageUrl();
+    const url = images?.[0] ? URL.createObjectURL(images[0]) : '';
     setPreviewUrl(url);
     return () => {
       if (url) URL.revokeObjectURL(url);
     };
   }, [images]);
 
-  // When category changes: reset attributes and load category schema (with fields)
+  // When category changes: reset details and load category schema (with fields)
   useEffect(() => {
-    setAttributes({});
+    setDetails({});
     setCategoryWithFields(null);
     if (!categorySlug || !categorySlug.trim()) return;
 
@@ -67,6 +66,38 @@ const CreateAd = () => {
       });
     return () => { cancelled = true; };
   }, [categorySlug, categories]);
+
+  const selectedCategory = categoryWithFields || categories.find((c) => c.slug === categorySlug);
+  const availableSubcategories = selectedCategory?.subcategories || selectedCategory?.subs || [];
+  const selectedSub = subCategorySlug
+    ? availableSubcategories.find((s) => (s.slug || s) === subCategorySlug)
+    : null;
+  const mergedFields = mergeFieldsByKey(selectedCategory?.fields || [], selectedSub?.fields || []);
+
+  // When subcategory changes: keep details but remove keys no longer in mergedFields
+  useEffect(() => {
+    if (!categorySlug) return;
+    const sel = categoryWithFields || categories.find((c) => c.slug === categorySlug);
+    const base = sel?.fields || [];
+    const subs = sel?.subcategories || sel?.subs || [];
+    const sub = subCategorySlug ? subs.find((s) => (s.slug || s) === subCategorySlug) : null;
+    const merged = mergeFieldsByKey(base, sub?.fields || []);
+    if (merged.length === 0) return;
+    const keys = new Set(merged.map((f) => f.key || f.name).filter(Boolean));
+    setDetails((prev) => {
+      const next = {};
+      keys.forEach((k) => {
+        if (prev[k] !== undefined) next[k] = prev[k];
+      });
+      if (
+        Object.keys(next).length === Object.keys(prev).length &&
+        Object.keys(prev).every((k) => keys.has(k))
+      ) {
+        return prev;
+      }
+      return next;
+    });
+  }, [categorySlug, subCategorySlug, categoryWithFields, categories]);
 
   const validate = () => {
     const errors = {};
@@ -102,15 +133,8 @@ const CreateAd = () => {
       errors.category = 'Category is required';
     }
 
-    const fields = categoryWithFields?.fields || [];
-    fields.forEach((field) => {
-      if (!field.required) return;
-      const key = field.key || field.name;
-      if (!key) return;
-      const val = attributes[key];
-      const empty = val === undefined || val === null || (typeof val === 'string' && !val.trim());
-      if (empty) errors[`attr_${key}`] = `${field.label || key} is required`;
-    });
+    const detailErrors = validateDynamicDetails(mergedFields, details);
+    Object.assign(errors, detailErrors);
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -163,7 +187,7 @@ const CreateAd = () => {
       if (subCategorySlug && subCategorySlug.trim()) {
         formData.append('subCategorySlug', subCategorySlug);
       }
-      formData.append('attributes', JSON.stringify(attributes));
+      formData.append('details', JSON.stringify(details));
 
       if (import.meta.env.DEV) {
         console.log('[CREATE_AD] categorySlug:', categorySlug, 'subCategorySlug:', subCategorySlug || 'null');
@@ -190,16 +214,14 @@ const CreateAd = () => {
     setValidationErrors((prev) => ({ ...prev, images: null }));
   };
 
-  const selectedCategory = categories.find((c) => c.slug === categorySlug);
-  const availableSubcategories = selectedCategory?.subcategories || selectedCategory?.subs || [];
-
   const handleCategoryChange = (e) => {
     const newCategorySlug = e.target.value;
     setCategorySlug(newCategorySlug);
     setSubCategorySlug('');
+    setDetails({});
     setValidationErrors((prev) => {
       const next = { ...prev, category: null, subCategory: null };
-      Object.keys(next).forEach((k) => { if (k.startsWith('attr_')) delete next[k]; });
+      Object.keys(next).forEach((k) => { if (k.startsWith('detail_')) delete next[k]; });
       return next;
     });
   };
@@ -414,21 +436,23 @@ const CreateAd = () => {
                 )}
               </section>
 
-              {categorySlug && (categoryWithFields?.fields?.length > 0) && (
-                <section className="createad-section">
-                  <h3 className="createad-section-title">Specifications</h3>
-                  <p className="createad-section-sub">Category-specific details for your listing</p>
-                  <DynamicFields
-                    fields={categoryWithFields.fields}
-                    value={attributes}
-                    onChange={setAttributes}
-                    errors={Object.fromEntries(
-                      (categoryWithFields.fields || [])
-                        .filter((f) => (f.key || f.name) && validationErrors[`attr_${f.key || f.name}`])
-                        .map((f) => [(f.key || f.name), validationErrors[`attr_${f.key || f.name}`]])
-                    )}
-                    disabled={loading}
-                  />
+              {categorySlug && mergedFields.length > 0 && (
+                <section className="createad-section createad-section--details">
+                  <h3 className="createad-section-title">Details</h3>
+                  <p className="createad-section-sub">Category-specific criteria for your listing</p>
+                  <div className="createad-details-grid">
+                    <DynamicFields
+                      fields={mergedFields}
+                      value={details}
+                      onChange={setDetails}
+                      errors={Object.fromEntries(
+                        mergedFields
+                          .filter((f) => (f.key || f.name) && validationErrors[`detail_${f.key || f.name}`])
+                          .map((f) => [(f.key || f.name), validationErrors[`detail_${f.key || f.name}`]])
+                      )}
+                      disabled={loading}
+                    />
+                  </div>
                 </section>
               )}
 

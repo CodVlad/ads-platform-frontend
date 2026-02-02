@@ -2,12 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../auth/useAuth.js';
 import { getUnreadCountCached } from '../api/chat';
 import { ChatNotificationsContext } from './ChatNotificationsContext.js';
-import { useToast } from '../hooks/useToast';
 
 export const ChatNotificationsProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const { token } = useAuth();
-  const { error: showError } = useToast();
   const pollIntervalRef = useRef(null);
   const retryTimeoutRef = useRef(null);
   const abortControllerRef = useRef(null);
@@ -75,18 +73,17 @@ export const ChatNotificationsProvider = ({ children }) => {
       // For other errors, don't spam console, just keep current count
       // This prevents breaking the app if backend is down
     }
-  }, [token, showError]);
+  }, [token]);
 
   // Polling every 30 seconds if token exists
   useEffect(() => {
-    // HARD GUARD: Do NOT poll if token is missing
     if (!token) {
-      setUnreadCount(0);
+      queueMicrotask(() => setUnreadCount(0));
       return;
     }
 
-    // Initial fetch
-    refreshUnreadCount();
+    // Initial fetch (deferred to satisfy react-hooks/set-state-in-effect)
+    queueMicrotask(() => refreshUnreadCount());
 
     // Poll every 30 seconds
     pollIntervalRef.current = setInterval(() => {

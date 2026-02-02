@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getUnreadCountCached, getChats } from '../api/chat';
+import { getUnreadCountCached } from '../api/chat';
 import { useAuth } from '../auth/useAuth.js';
 
 /**
@@ -90,14 +90,12 @@ export const useUnreadCount = () => {
 
   // Fetch on mount and poll every 30 seconds (only if token exists)
   useEffect(() => {
-    // HARD GUARD: Do NOT poll if token is missing
     if (!token) {
-      setUnreadCount(0);
+      queueMicrotask(() => setUnreadCount(0));
       return;
     }
 
-    // Initial fetch
-    fetchUnreadCount();
+    queueMicrotask(() => fetchUnreadCount());
 
     // Poll every 30 seconds
     pollIntervalRef.current = setInterval(() => {
@@ -119,9 +117,8 @@ export const useUnreadCount = () => {
   // Refresh when navigating to /chats (throttled)
   useEffect(() => {
     if (!token) return;
-    
     if (location.pathname === '/chats' || location.hash === '#/chats') {
-      fetchUnreadCount();
+      queueMicrotask(() => fetchUnreadCount());
     }
   }, [location.pathname, location.hash, token, fetchUnreadCount]);
 

@@ -17,9 +17,9 @@ export const slugifyRo = (text) => {
     // Remove parentheses and their content
     .replace(/\([^)]*\)/g, '')
     // Replace multiple spaces/hyphens with single hyphen
-    .replace(/[\s\-]+/g, '-')
+    .replace(/[\s-]+/g, '-')
     // Remove non-alphanumeric characters except hyphens
-    .replace(/[^a-z0-9\-]/g, '')
+    .replace(/[^a-z0-9-]/g, '')
     // Remove leading/trailing hyphens
     .replace(/^-+|-+$/g, '');
 };

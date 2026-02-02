@@ -10,12 +10,8 @@ import api from './client';
  * @returns {Promise<any>} Response data
  */
 export async function fetchCategories() {
-  try {
-    const response = await api.get('/categories');
-    return response;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get('/categories');
+  return response;
 }
 
 /**
@@ -28,10 +24,6 @@ export async function getCategoryBySlug(slug) {
   if (!slug || !String(slug).trim()) {
     return { data: null };
   }
-  try {
-    const response = await api.get(`/categories/${encodeURIComponent(String(slug).trim())}`);
-    return response;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get(`/categories/${encodeURIComponent(String(slug).trim())}`);
+  return response;
 }

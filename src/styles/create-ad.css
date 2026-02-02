@@ -336,7 +336,20 @@
   gap: 16px;
 }
 
-/* Dynamic fields (Specifications) */
+/* Details section – 2-column grid */
+.createad-section--details .createad-details-grid .dynamic-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+}
+
+@media (max-width: 600px) {
+  .createad-section--details .createad-details-grid .dynamic-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dynamic fields (Details) */
 .dynamic-fields {
   display: flex;
   flex-direction: column;

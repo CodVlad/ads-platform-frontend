@@ -13,7 +13,6 @@ const MyAds = () => {
   const [ads, setAds] = useState([]);
   const [loadingById, setLoadingById] = useState({});
   const [errorById, setErrorById] = useState({});
-  const [validationErrorsById, setValidationErrorsById] = useState({});
 
   const setAdLoading = useCallback((adId, isLoading) => {
     setLoadingById((prev) => ({
@@ -81,41 +80,6 @@ const MyAds = () => {
     navigate(`/edit/${adId}`);
   };
 
-  const validateEditForm = (adId, formData) => {
-    const errors = {};
-
-    const titleTrimmed = formData.title?.trim() || '';
-    if (!titleTrimmed) {
-      errors.title = 'Title is required';
-    } else if (titleTrimmed.length < 3) {
-      errors.title = 'Title must be at least 3 characters';
-    }
-
-    const descriptionTrimmed = formData.description?.trim() || '';
-    if (!descriptionTrimmed) {
-      errors.description = 'Description is required';
-    } else if (descriptionTrimmed.length < 20) {
-      errors.description = 'Description must be at least 20 characters';
-    }
-
-    const priceNum = Number(formData.price);
-    if (!formData.price || !isFinite(priceNum) || priceNum <= 0) {
-      errors.price = 'Price must be a number greater than 0';
-    }
-
-    const validCurrencies = ['EUR', 'USD', 'MDL'];
-    if (!formData.currency || !validCurrencies.includes(formData.currency)) {
-      errors.currency = 'Currency must be EUR, USD, or MDL';
-    }
-
-    setValidationErrorsById((prev) => ({
-      ...prev,
-      [adId]: errors,
-    }));
-
-    return Object.keys(errors).length === 0;
-  };
-
   const handleDelete = async (adId) => {
     if (!window.confirm('Delete this ad?')) {
       return;
@@ -127,11 +91,6 @@ const MyAds = () => {
     try {
       await deleteAd(adId);
       await fetchMyAds();
-      setValidationErrorsById((prev) => {
-        const updated = { ...prev };
-        delete updated[adId];
-        return updated;
-      });
       setAdError(adId, null);
       success('Ad deleted');
     } catch (err) {

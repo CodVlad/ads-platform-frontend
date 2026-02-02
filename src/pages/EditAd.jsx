@@ -7,6 +7,7 @@ import DynamicFields from '../components/DynamicFields';
 import { useToast } from '../hooks/useToast';
 import { parseError } from '../utils/errorParser';
 import { capitalizeWords } from '../utils/text';
+import { validateDynamicDetails, mergeFieldsByKey } from '../utils/dynamicDetailsValidation';
 import '../styles/edit-ad.css';
 
 const EditAd = () => {
@@ -29,7 +30,7 @@ const EditAd = () => {
   const [subCategorySlug, setSubCategorySlug] = useState('');
   const [newImages, setNewImages] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
-  const [attributes, setAttributes] = useState({});
+  const [details, setDetails] = useState({});
   const [categoryWithFields, setCategoryWithFields] = useState(null);
 
   const adId = useMemo(() => (ad?._id || ad?.id || id || '').trim(), [ad, id]);
@@ -61,10 +62,10 @@ const EditAd = () => {
         setCategorySlug(catSlug);
         setSubCategorySlug(subSlug);
 
-        const attrs = adData?.attributes;
-        setAttributes(
-          attrs && typeof attrs === 'object' && !Array.isArray(attrs)
-            ? { ...attrs }
+        const det = adData?.details ?? adData?.attributes;
+        setDetails(
+          det && typeof det === 'object' && !Array.isArray(det)
+            ? { ...det }
             : {}
         );
       } catch (err) {
@@ -108,10 +109,49 @@ const EditAd = () => {
   }, [categorySlug, categories]);
 
   const selectedCategory = useMemo(
-    () => categories.find((c) => c.slug === categorySlug),
-    [categories, categorySlug],
+    () => categoryWithFields || categories.find((c) => c.slug === categorySlug),
+    [categoryWithFields, categories, categorySlug],
   );
-  const availableSubcategories = selectedCategory?.subcategories || selectedCategory?.subs || [];
+  const availableSubcategories = useMemo(
+    () => selectedCategory?.subcategories || selectedCategory?.subs || [],
+    [selectedCategory?.subcategories, selectedCategory?.subs],
+  );
+  const selectedSub = useMemo(
+    () =>
+      subCategorySlug
+        ? availableSubcategories.find((s) => (s.slug || s) === subCategorySlug)
+        : null,
+    [subCategorySlug, availableSubcategories],
+  );
+  const mergedFields = useMemo(
+    () => mergeFieldsByKey(selectedCategory?.fields || [], selectedSub?.fields || []),
+    [selectedCategory?.fields, selectedSub?.fields],
+  );
+
+  // When subcategory changes: keep details but remove keys no longer in mergedFields
+  useEffect(() => {
+    if (!categorySlug) return;
+    const sel = categoryWithFields || categories.find((c) => c.slug === categorySlug);
+    const base = sel?.fields || [];
+    const subs = sel?.subcategories || sel?.subs || [];
+    const sub = subCategorySlug ? subs.find((s) => (s.slug || s) === subCategorySlug) : null;
+    const merged = mergeFieldsByKey(base, sub?.fields || []);
+    if (merged.length === 0) return; // preserve loaded ad.details until schema is ready
+    const keys = new Set(merged.map((f) => f.key || f.name).filter(Boolean));
+    setDetails((prev) => {
+      const next = {};
+      keys.forEach((k) => {
+        if (prev[k] !== undefined) next[k] = prev[k];
+      });
+      if (
+        Object.keys(next).length === Object.keys(prev).length &&
+        Object.keys(prev).every((k) => keys.has(k))
+      ) {
+        return prev;
+      }
+      return next;
+    });
+  }, [categorySlug, subCategorySlug, categoryWithFields, categories]);
 
   const validate = () => {
     const errors = {};
@@ -132,15 +172,8 @@ const EditAd = () => {
 
     if (!categorySlug || !categorySlug.trim()) errors.category = 'Category is required';
 
-    const fields = categoryWithFields?.fields || [];
-    fields.forEach((field) => {
-      if (!field.required) return;
-      const key = field.key || field.name;
-      if (!key) return;
-      const val = attributes[key];
-      const empty = val === undefined || val === null || (typeof val === 'string' && !val.trim());
-      if (empty) errors[`attr_${key}`] = `${field.label || key} is required`;
-    });
+    const detailErrors = validateDynamicDetails(mergedFields, details);
+    Object.assign(errors, detailErrors);
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -150,10 +183,10 @@ const EditAd = () => {
     const newSlug = e.target.value;
     setCategorySlug(newSlug);
     setSubCategorySlug('');
-    setAttributes({});
+    setDetails({});
     setValidationErrors((prev) => {
       const next = { ...prev, category: null, subCategory: null };
-      Object.keys(next).forEach((k) => { if (k.startsWith('attr_')) delete next[k]; });
+      Object.keys(next).forEach((k) => { if (k.startsWith('detail_')) delete next[k]; });
       return next;
     });
   };
@@ -177,14 +210,14 @@ const EditAd = () => {
         price: Number(price),
         currency,
         categorySlug: categorySlug.trim(),
-        attributes,
+        details,
       };
       if (subCategorySlug && subCategorySlug.trim()) payload.subCategorySlug = subCategorySlug.trim();
 
       if (newImages.length > 0) {
         const formData = new FormData();
         Object.entries(payload).forEach(([k, v]) => {
-          if (k === 'attributes') formData.append(k, JSON.stringify(v));
+          if (k === 'details') formData.append(k, JSON.stringify(v));
           else formData.append(k, String(v));
         });
         Array.from(newImages).forEach((file) => formData.append('images', file));
@@ -506,23 +539,25 @@ const EditAd = () => {
                 )}
               </section>
 
-              {categorySlug && (categoryWithFields?.fields?.length > 0) && (
-                <section className="editad-section">
-                  <h3 className="editad-section-title">Specifications</h3>
-                  <p className="editad-section-sub">Category-specific details</p>
-                  <DynamicFields
-                    fields={categoryWithFields.fields}
-                    value={attributes}
-                    onChange={setAttributes}
-                    errors={Object.fromEntries(
-                      (categoryWithFields.fields || [])
-                        .filter((f) => (f.key || f.name) && validationErrors[`attr_${f.key || f.name}`])
-                        .map((f) => [(f.key || f.name), validationErrors[`attr_${f.key || f.name}`]])
-                    )}
-                    disabled={saving}
-                    fieldClassName="editad-field"
-                    inputClassName="editad-input"
-                  />
+              {categorySlug && mergedFields.length > 0 && (
+                <section className="editad-section editad-section--details">
+                  <h3 className="editad-section-title">Details</h3>
+                  <p className="editad-section-sub">Category-specific criteria</p>
+                  <div className="editad-details-grid">
+                    <DynamicFields
+                      fields={mergedFields}
+                      value={details}
+                      onChange={setDetails}
+                      errors={Object.fromEntries(
+                        mergedFields
+                          .filter((f) => (f.key || f.name) && validationErrors[`detail_${f.key || f.name}`])
+                          .map((f) => [(f.key || f.name), validationErrors[`detail_${f.key || f.name}`]])
+                      )}
+                      disabled={saving}
+                      fieldClassName="editad-field"
+                      inputClassName="editad-input"
+                    />
+                  </div>
                 </section>
               )}
 

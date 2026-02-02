@@ -5,7 +5,7 @@ import { capitalizeWords } from '../utils/text';
  * Used in CreateAd and EditAd for category-specific attributes.
  *
  * @param {Object} props
- * @param {Array<{key: string, label?: string, type: string, required?: boolean, options?: Array<string|{value, label}>, min?: number, max?: number, unit?: string}>} props.fields - Schema fields from category
+ * @param {Array<{key: string, label?: string, type: string, required?: boolean, options?: Array<string|{value, label}>, min?: number, max?: number, unit?: string, placeholder?: string}>} props.fields - Schema fields from category/subcategory
  * @param {Object} props.value - Current attributes { [field.key]: value }
  * @param {function(Object)} props.onChange - (newValue) => void
  * @param {Object} props.errors - Field errors { [field.key]: string }
@@ -111,6 +111,16 @@ const DynamicFields = ({
                       <span className="dynamic-fields__unit">{field.unit}</span>
                     )}
                   </div>
+                ) : field.type === 'textarea' ? (
+                  <textarea
+                    id={`attr-${key}`}
+                    className={inputClassName}
+                    value={fieldValue ?? ''}
+                    onChange={(e) => updateOne(key, e.target.value || undefined)}
+                    disabled={disabled}
+                    placeholder={field.placeholder}
+                    rows={field.rows ?? 3}
+                  />
                 ) : (
                   <input
                     type="text"

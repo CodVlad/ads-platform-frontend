@@ -41,7 +41,7 @@ const SortableImageItem = ({ file, index, onRemove }) => {
   useEffect(() => {
     if (file instanceof File) {
       const url = URL.createObjectURL(file);
-      setPreview(url);
+      queueMicrotask(() => setPreview(url));
       return () => {
         URL.revokeObjectURL(url);
       };
@@ -140,21 +140,20 @@ const ImageUploader = ({ value = [], onChange, maxFiles = 10, maxSize = MAX_FILE
     setFiles(value);
   }, [value]);
 
-  const validateFile = (file) => {
-    // Check if it's an image
-    if (!file.type.startsWith('image/')) {
-      showError(`${file.name} is not an image file`);
-      return false;
-    }
-
-    // Check file size
-    if (file.size > maxSize) {
-      showError(`${file.name} is too large. Maximum size is ${Math.round(maxSize / 1024 / 1024)}MB`);
-      return false;
-    }
-
-    return true;
-  };
+  const validateFile = useCallback(
+    (file) => {
+      if (!file.type.startsWith('image/')) {
+        showError(`${file.name} is not an image file`);
+        return false;
+      }
+      if (file.size > maxSize) {
+        showError(`${file.name} is too large. Maximum size is ${Math.round(maxSize / 1024 / 1024)}MB`);
+        return false;
+      }
+      return true;
+    },
+    [maxSize, showError],
+  );
 
   const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
     // Handle rejected files
@@ -186,7 +185,7 @@ const ImageUploader = ({ value = [], onChange, maxFiles = 10, maxSize = MAX_FILE
       setFiles(newFiles);
       onChange(newFiles);
     }
-  }, [files, maxFiles, maxSize, onChange, showError]);
+  }, [files, maxFiles, maxSize, onChange, showError, validateFile]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

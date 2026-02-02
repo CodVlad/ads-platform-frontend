@@ -245,6 +245,19 @@
   margin: 0 0 16px 0;
 }
 
+/* Details section – 2-column grid */
+.editad-section--details .editad-details-grid .dynamic-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+}
+
+@media (max-width: 600px) {
+  .editad-section--details .editad-details-grid .dynamic-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Fields */
 .editad-field {
   margin-bottom: 20px;
@@ -263,7 +276,7 @@
 }
 
 .editad-field__label--required::after {
-  content: ' *';
+  content: " *";
   color: #dc2626;
 }
 
@@ -309,7 +322,9 @@
   background: #fff;
   font-size: 15px;
   color: #0f172a;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   outline: none;
 }
 
@@ -379,12 +394,7 @@
 .editad-skeleton-line {
   height: 28px;
   width: 60%;
-  background: linear-gradient(
-    90deg,
-    #e2e8f0 0%,
-    #f1f5f9 50%,
-    #e2e8f0 100%
-  );
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
   background-size: 200% 100%;
   animation: editad-skeleton-shimmer 1.2s ease-in-out infinite;
   border-radius: 8px;
@@ -393,12 +403,7 @@
 
 .editad-skeleton-text {
   height: 14px;
-  background: linear-gradient(
-    90deg,
-    #e2e8f0 0%,
-    #f1f5f9 50%,
-    #e2e8f0 100%
-  );
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
   background-size: 200% 100%;
   animation: editad-skeleton-shimmer 1.2s ease-in-out infinite;
   border-radius: 6px;

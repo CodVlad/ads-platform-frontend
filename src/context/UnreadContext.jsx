@@ -12,6 +12,7 @@ export const UnreadProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook + provider in same file
 export const useUnread = () => {
   const context = useContext(UnreadContext);
   if (!context) {

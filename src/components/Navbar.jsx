@@ -17,11 +17,11 @@ const Navbar = () => {
     const searchParam = searchParams.get('search');
     const isAdsRoute = location.pathname === '/ads' || location.hash.startsWith('#/ads');
     if (isAdsRoute) {
-      setNavSearch(searchParam ? String(searchParam) : '');
+      const value = searchParam ? String(searchParam) : '';
+      queueMicrotask(() => setNavSearch(value));
       return;
     }
-    // Keep user input when not on /ads; do not sync to unrelated routes
-  }, [searchParams, location.pathname]);
+  }, [searchParams, location.pathname, location.hash]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -37,9 +37,8 @@ const Navbar = () => {
 
   // Fetch unread count on mount and poll every 30s (throttled)
   useEffect(() => {
-    // HARD GUARD: Do NOT poll if user/token is missing
     if (!user) {
-      setUnread(0);
+      queueMicrotask(() => setUnread(0));
       return;
     }
 

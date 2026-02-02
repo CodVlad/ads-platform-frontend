@@ -29,7 +29,7 @@ const useCategories = () => {
               fetchAndCache();
               return;
             }
-          } catch (e) {
+          } catch {
             // Invalid cache, continue to fetch
           }
         }
@@ -57,7 +57,7 @@ const useCategories = () => {
           data: categoriesArray,
           timestamp: Date.now(),
         }));
-      } catch (e) {
+      } catch {
         // Ignore localStorage errors
       }
     };
