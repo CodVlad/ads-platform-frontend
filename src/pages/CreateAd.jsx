@@ -54,13 +54,6 @@ const CreateAd = () => {
     if (!categorySlug || !categorySlug.trim()) return;
 
     const fromList = categories.find((c) => c.slug === categorySlug);
-    const hasFields = fromList?.fields && Array.isArray(fromList.fields) && fromList.fields.length > 0;
-    if (hasFields) {
-      setCategoryWithFields(fromList);
-      setCategoryFieldsLoading(false);
-      return;
-    }
-
     let cancelled = false;
     setCategoryFieldsLoading(true);
     getCategoryBySlug(categorySlug)
@@ -69,6 +62,9 @@ const CreateAd = () => {
         const cat = res?.data?.category ?? res?.data?.data ?? res?.data;
         if (cat && (cat.fields == null || Array.isArray(cat.fields))) {
           setCategoryWithFields(cat);
+          if (import.meta.env.DEV && (!cat.fields || cat.fields.length === 0)) {
+            console.warn('[CATEGORY] fields missing for', categorySlug);
+          }
         } else {
           setCategoryWithFields(fromList || cat || null);
         }
@@ -246,6 +242,21 @@ const CreateAd = () => {
       success('Ad created successfully');
       navigate('/my-ads');
     } catch (err) {
+      const data = err?.response?.data;
+      if (data?.fieldErrors && typeof data.fieldErrors === 'object') {
+        setValidationErrors((prev) => ({ ...prev, ...data.fieldErrors }));
+        showError(data.message || 'Please fix validation errors');
+        const firstErrorKey = Object.keys(data.fieldErrors)[0];
+        if (firstErrorKey) {
+          setTimeout(() => {
+            const id = firstErrorKey.startsWith('detail_') ? `attr-${firstErrorKey.slice(7)}` : firstErrorKey;
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 150);
+        }
+        setLoading(false);
+        return;
+      }
       const errorMessage = parseError(err);
       setError(errorMessage);
       showError(errorMessage);
@@ -509,7 +520,7 @@ const CreateAd = () => {
                     </div>
                   ) : (
                     <div className="createad-empty-details">
-                      No additional details for this category yet.
+                      Completează detaliile pentru o listare mai bună.
                     </div>
                   )}
                 </section>
