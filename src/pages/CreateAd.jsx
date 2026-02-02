@@ -10,6 +10,7 @@ import { capitalizeWords } from '../utils/text';
 import { validateDynamicDetails, mergeFieldsByKey } from '../utils/dynamicDetailsValidation';
 import { CATEGORY_SLUG_ALIASES, CATEGORY_FIELD_PRESETS } from '../config/categoryFieldPresets';
 import { getBaseFieldsByCategorySlug, getExtraFieldsBySubcategorySlug } from '../catalog/categoryFieldCatalog';
+import { getFallbackFieldsForCategory } from '../constants/categoryFieldSchemas';
 import '../styles/create-ad.css';
 
 const canonicalSlug = (slug) => {
@@ -90,12 +91,15 @@ const CreateAd = () => {
 
   const apiBase = Array.isArray(selectedCategory?.fields) ? selectedCategory.fields : [];
   const apiSubExtra = Array.isArray(selectedSub?.fields) ? selectedSub.fields : [];
+  const fallbackFromConstants = getFallbackFieldsForCategory(categorySlug);
   const fallbackBase = getBaseFieldsByCategorySlug(categorySlug);
   const fallbackSubExtra = getExtraFieldsBySubcategorySlug(categorySlug, subCategorySlug);
   const baseFields =
     apiBase.length > 0
       ? apiBase
-      : (fallbackBase.length > 0 ? fallbackBase : (CATEGORY_FIELD_PRESETS[canonicalCategorySlug] || []));
+      : (fallbackFromConstants.length > 0
+          ? fallbackFromConstants
+          : (fallbackBase.length > 0 ? fallbackBase : (CATEGORY_FIELD_PRESETS[canonicalCategorySlug] || [])));
   const subExtraFields = apiSubExtra.length > 0 ? apiSubExtra : fallbackSubExtra;
   const finalFields = mergeFieldsByKey(baseFields, subExtraFields);
 
@@ -107,9 +111,10 @@ const CreateAd = () => {
     const subs = sel?.subcategories || sel?.subs || [];
     const sub = subCategorySlug ? subs.find((s) => (s.slug || s) === subCategorySlug) : null;
     const apiSubEff = Array.isArray(sub?.fields) ? sub.fields : [];
+    const fallbackConstEff = getFallbackFieldsForCategory(categorySlug);
     const fallbackBaseEff = getBaseFieldsByCategorySlug(categorySlug);
     const fallbackSubEff = getExtraFieldsBySubcategorySlug(categorySlug, subCategorySlug);
-    const baseEff = apiBaseEff.length > 0 ? apiBaseEff : (fallbackBaseEff.length > 0 ? fallbackBaseEff : (CATEGORY_FIELD_PRESETS[canonicalSlug(categorySlug)] || []));
+    const baseEff = apiBaseEff.length > 0 ? apiBaseEff : (fallbackConstEff.length > 0 ? fallbackConstEff : (fallbackBaseEff.length > 0 ? fallbackBaseEff : (CATEGORY_FIELD_PRESETS[canonicalSlug(categorySlug)] || [])));
     const subEff = apiSubEff.length > 0 ? apiSubEff : fallbackSubEff;
     const final = mergeFieldsByKey(baseEff, subEff);
     if (final.length === 0) {
@@ -168,6 +173,13 @@ const CreateAd = () => {
 
     const detailErrors = validateDynamicDetails(finalFields, details);
     Object.assign(errors, detailErrors);
+
+    // Educație & Cursuri: city required when format is Offline or Hibrid
+    const slugForEducatie = String(categorySlug || '').toLowerCase().replace(/\s+/g, '-');
+    const isEducatieCursuri = slugForEducatie === 'educatie-cursuri' || slugForEducatie === 'educatie-si-cursuri';
+    if (isEducatieCursuri && (details.format === 'Offline' || details.format === 'Hibrid') && !String(details.city || '').trim()) {
+      errors.detail_city = 'Orașul este obligatoriu pentru format Offline sau Hibrid';
+    }
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
