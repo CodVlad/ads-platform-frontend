@@ -219,6 +219,11 @@ const CreateAd = () => {
     setLoading(true);
 
     try {
+      const allowedKeys = new Set(finalFields.map((f) => f.key || f.name).filter(Boolean));
+      const sanitizedDetails = Object.fromEntries(
+        Object.entries(details || {}).filter(([k]) => allowedKeys.has(k))
+      );
+
       const formData = new FormData();
       formData.append('title', title.trim());
       formData.append('description', description.trim());
@@ -228,7 +233,7 @@ const CreateAd = () => {
       if (subCategorySlug && subCategorySlug.trim()) {
         formData.append('subCategorySlug', subCategorySlug);
       }
-      formData.append('details', JSON.stringify(details));
+      formData.append('details', JSON.stringify(sanitizedDetails));
 
       if (import.meta.env.DEV) {
         console.log('[CREATE_AD] categorySlug:', categorySlug, 'subCategorySlug:', subCategorySlug || 'null');
@@ -248,6 +253,10 @@ const CreateAd = () => {
       const msg = data?.message || parseError(err);
       setError(msg);
       showError(msg);
+
+      if (data?.invalidKeys && Array.isArray(data.invalidKeys) && data.invalidKeys.length > 0) {
+        showError(`Invalid fields: ${data.invalidKeys.join(', ')}`);
+      }
 
       if (data?.fieldErrors && typeof data.fieldErrors === 'object') {
         setValidationErrors((prev) => ({ ...prev, ...data.fieldErrors }));
